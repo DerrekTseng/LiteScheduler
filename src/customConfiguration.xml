@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans default-autowire="byName"
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+	xsi:schemaLocation=
+	"http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+	 http://www.springframework.org/schema/data/jpa http://www.springframework.org/schema/data/jpa/spring-jpa.xsd">
+	
+	<bean class="org.springframework.context.support.PropertySourcesPlaceholderConfigurer">
+		<property name="ignoreResourceNotFound" value="true" />
+		<property name="locations">
+			<!-- 依序讀取，後面的 properties 如果有相同的 key 則會取代前面的。 -->
+			<list>
+				<value>classpath:/custom-dev.properties</value>
+				<value>file:${catalina.base}/custom-prd.properties</value> 
+			</list>
+		</property>
+		<property name="fileEncoding" value="utf-8" />
+	</bean>
+	
+	<jpa:repositories base-package="lite.scheduler.custom.repository" entity-manager-factory-ref="mysql_entityManagerFactory" transaction-manager-ref="mysql_transactionManager"/>
+
+    <bean id="mysql_transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager" p:entityManagerFactory-ref="mysql_entityManagerFactory"/>
+	
+	<bean id="mysql_entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+        <property name="dataSource" ref="mysql_dataSource" />
+        <property name="packagesToScan" value="lite.scheduler.custom.entity" />
+        <property name="jpaVendorAdapter">
+            <bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter" />
+        </property>
+        <property name="jpaProperties">
+        	<props>
+        		<prop key="hibernate.dialect">org.hibernate.dialect.MySQL8Dialect</prop>
+        		<prop key="hibernate.format_sql">false</prop>
+        		<prop key="hibernate.show_sql">false</prop>
+        		<prop key="hibernate.hbm2ddl.auto">update</prop>
+        	</props>
+        </property>
+    </bean>
+	
+	<bean id="mysql_dataSource" class="org.apache.commons.dbcp2.BasicDataSource" destroy-method="close">
+		<property name="driverClassName" value="com.mysql.cj.jdbc.Driver" />
+		<property name="url" value="${mysql.url}" />
+		<property name="username" value="${mysql.username}" />
+		<property name="password" value="${mysql.password}" />
+		
+		<property name="maxTotal" value="100"/>
+	    <property name="validationQuery" value="SELECT 1 FROM DUAL"/>
+	    <property name="maxConnLifetimeMillis" value="14400000"/>
+		<property name="timeBetweenEvictionRunsMillis" value="600000"/>
+	    <property name="removeAbandonedTimeout" value="60"/>
+	    <property name="minEvictableIdleTimeMillis" value="600000"/>
+	    <property name="removeAbandonedOnBorrow" value="true" />
+        <property name="removeAbandonedOnMaintenance" value="true" />
+	</bean> 
+	
+</beans>
