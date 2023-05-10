@@ -21,8 +21,8 @@
         <property name="jpaProperties">
         	<props>
         		<prop key="hibernate.dialect">org.hibernate.dialect.H2Dialect</prop>
-        		<prop key="hibernate.format_sql">true</prop>
-        		<prop key="hibernate.show_sql">true</prop>
+        		<prop key="hibernate.format_sql">false</prop>
+        		<prop key="hibernate.show_sql">false</prop>
         		<prop key="hibernate.hbm2ddl.auto">update</prop>
         	</props>
         </property>
@@ -30,9 +30,14 @@
 	
 	<bean id="core_dataSource" class="org.apache.commons.dbcp2.BasicDataSource" destroy-method="close">
 		<property name="driverClassName" value="org.h2.Driver" />
-		<property name="url" value="jdbc:h2:file:${catalina.base}/lite-scheduler" />
+		<property name="url" value="jdbc:h2:file:${lite.scheduler.work.dir}/lite-scheduler" />
 		<property name="username" value="sa" />
 		<property name="password" value="sa" />
-	</bean> 
+	</bean>
+	
+	
+	<bean id="quartzSchedulerThreadSize" class="java.lang.Integer">
+		<constructor-arg value="8" />
+	</bean>
 	
 </beans>

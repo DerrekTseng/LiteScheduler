@@ -4,25 +4,26 @@
 	<Properties>
 		<Property name="project">lite-scheduler</Property>
 		<Property name="date">%d{yyyy-MM-dd}</Property>
-		<Property name="destination">${sys:catalina.base}/logs</Property>
-		<Property name="pattern">[%d{yyy-MM-dd HH:mm:ss.SSS}] [%p] (%F:%M:%L) - %m%n</Property>
+		<Property name="destination">${sys:lite.scheduler.work.dir}/logs</Property>
+		<Property name="pattern.web">[%d{yyyy-MM-dd HH:mm:ss.SSS}] [%p] (%F:%M:%L) - %m%n</Property>
+		<Property name="pattern.scheduler">[%d{yyy-MM-dd HH:mm:ss.SSS}] [%p] [%X{scheduleId}] (%F:%M:%L) - %m%n</Property>
 	</Properties>
 
 	<Appenders>
 	
 		<Routing name="ConsoleLogRouting">
-			<Routes pattern="${ctx:schedulerid}">
-				<Route key="${ctx:schedulerid}"> <!-- 當key有值時 因為沒有設定 RoutingInit 所以不會使用此 Route 的 Appender -->
+			<Routes pattern="${ctx:scheduleId}">
+				<Route key="${ctx:scheduleId}"> <!-- 當key有值時 因為沒有設定 RoutingInit 所以不會使用此 Route 的 Appender -->
 					<Console name="WebConsoleLogRouting" target="SYSTEM_OUT">
 						<PatternLayout>
-							<Pattern>${pattern}</Pattern>
+							<Pattern>${pattern.web}</Pattern>
 						</PatternLayout>
 					</Console>
 				</Route>
 				<Route>
 					<Console name="SchedulerConsoleLogRouting" target="SYSTEM_OUT">
 						<PatternLayout>
-							<Pattern>${pattern}</Pattern>
+							<Pattern>${pattern.scheduler}</Pattern>
 						</PatternLayout>
 					</Console>
 				</Route>
@@ -30,14 +31,14 @@
 		</Routing>
 		
 		<Routing name="FileLogRouting">
-			<Routes pattern="${ctx:schedulerid}">
-				<Route key="${ctx:schedulerid}"> <!-- 當key有值時 因為沒有設定 RoutingInit 所以不會使用此 Route 的 Appender -->
+			<Routes pattern="${ctx:scheduleId}">
+				<Route key="${ctx:scheduleId}"> <!-- 當key有值時 因為沒有設定 RoutingInit 所以不會使用此 Route 的 Appender -->
 					<RollingFile name="WebFileLogRouting"
 						immediateFlush="true"
 						fileName="${destination}/${project}.log"
 						filePattern="${destination}/${project}.${date}.log">
 						<PatternLayout>
-							<Pattern>${pattern}</Pattern>
+							<Pattern>${pattern.web}</Pattern>
 						</PatternLayout>
 						<Policies>
 							<TimeBasedTriggeringPolicy />
@@ -52,10 +53,10 @@
 				<Route>
 					<RollingFile name="SchedulerFileLogRouting" 
 						immediateFlush="true"
-						fileName="${destination}/scheduler/${ctx:schedulerid}.log" 
-						filePattern="${destination}/scheduler/${ctx:schedulerid}.${date}.log">
+						fileName="${destination}/scheduler/${ctx:scheduleId}.log" 
+						filePattern="${destination}/scheduler/${ctx:scheduleId}.${date}.log">
 						<PatternLayout>
-							<Pattern>${pattern}</Pattern>
+							<Pattern>${pattern.scheduler}</Pattern>
 						</PatternLayout>
 						<Policies>
 							<TimeBasedTriggeringPolicy />
@@ -73,41 +74,6 @@
 	</Appenders>
 
 	<Loggers>
-
-		<logger name="jdbc.connection" level="INFO" additivity="false">
-			<appender-ref ref="ConsoleLogRouting" />
-			<appender-ref ref="FileLogRouting" />
-		</logger>
-
-		<logger name="jdbc.audit" level="ERROR" additivity="false">
-			<appender-ref ref="ConsoleLogRouting" />
-			<appender-ref ref="FileLogRouting" />
-		</logger>
-
-		<logger name="jdbc.sqlonly" level="INFO" additivity="false">
-			<appender-ref ref="ConsoleLogRouting" />
-			<appender-ref ref="FileLogRouting" />
-		</logger>
-
-		<logger name="jdbc.sqltiming" level="ERROR" additivity="false">
-			<appender-ref ref="ConsoleLogRouting" />
-			<appender-ref ref="FileLogRouting" />
-		</logger>
-
-		<logger name="jdbc.resultset" level="ERROR" additivity="false">
-			<appender-ref ref="ConsoleLogRouting" />
-			<appender-ref ref="FileLogRouting" />
-		</logger>
-
-		<logger name="jdbc.resultsettable" level="ERROR" additivity="false">
-			<appender-ref ref="ConsoleLogRouting" />
-			<appender-ref ref="FileLogRouting" />
-		</logger>
-
-		<logger name="log4jdbc.debug" level="ERROR" additivity="false">
-			<appender-ref ref="ConsoleLogRouting" />
-			<appender-ref ref="FileLogRouting" />
-		</logger>
 
 		<Root level="INFO">
 			<AppenderRef ref="ConsoleLogRouting" />

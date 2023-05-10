@@ -6,7 +6,6 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 import org.hibernate.annotations.Type;
@@ -25,14 +24,13 @@ public class ExecutionHistory {
 	@GeneratedValue(strategy = GenerationType.SEQUENCE)
 	Integer id;
 
-	@ManyToOne
-	Schedule schedule;
+	String executionId;
 
-	@ManyToOne
-	JobGroup jobGroup;
+	String scheduleId;
 
-	@ManyToOne
-	Job job;
+	Integer jobGroupId;
+
+	Integer jobId;
 
 	@Type(type = "text")
 	String globleParameter;

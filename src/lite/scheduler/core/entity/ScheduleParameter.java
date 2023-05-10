@@ -1,5 +1,6 @@
 package lite.scheduler.core.entity;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -27,8 +28,11 @@ public class ScheduleParameter {
 
 	@Type(type = "text")
 	String data;
-	
+
 	@ManyToOne
 	Schedule schedule;
+
+	@Column(nullable = false)
+	Boolean enabled;
 
 }

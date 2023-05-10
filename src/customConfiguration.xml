@@ -14,7 +14,7 @@
 			<!-- 依序讀取，後面的 properties 如果有相同的 key 則會取代前面的。 -->
 			<list>
 				<value>classpath:/custom-dev.properties</value>
-				<value>file:${catalina.base}/custom-prd.properties</value> 
+				<value>file:${lite.scheduler.work.dir}/custom-prd.properties</value> 
 			</list>
 		</property>
 		<property name="fileEncoding" value="utf-8" />

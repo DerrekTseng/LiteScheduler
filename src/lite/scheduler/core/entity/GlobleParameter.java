@@ -1,5 +1,6 @@
 package lite.scheduler.core.entity;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -26,4 +27,7 @@ public class GlobleParameter {
 
 	@Type(type = "text")
 	String data;
+	
+	@Column(nullable = false)
+	Boolean enabled;
 }
