@@ -8,19 +8,21 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import lite.scheduler.core.cmp.SchedulerManipulator;
-import lite.scheduler.core.dto.GridJobGroupRow;
-import lite.scheduler.core.dto.GridJobRow;
-import lite.scheduler.core.dto.GridScheduleRow;
-import lite.scheduler.core.dto.JobDetail;
-import lite.scheduler.core.dto.JobGroupDetail;
-import lite.scheduler.core.dto.ScheduleDetail;
+import lite.scheduler.core.dto.ResponseMessage;
 import lite.scheduler.core.entity.ExecutionHistory;
 import lite.scheduler.core.entity.Job;
 import lite.scheduler.core.entity.JobGroup;
 import lite.scheduler.core.entity.Schedule;
+import lite.scheduler.core.enums.ScheduledState;
 import lite.scheduler.core.repo.JobGroupRepo;
 import lite.scheduler.core.repo.JobRepo;
 import lite.scheduler.core.repo.ScheduleRepo;
+import lite.scheduler.core.vo.GridJobGroupRow;
+import lite.scheduler.core.vo.GridJobRow;
+import lite.scheduler.core.vo.GridScheduleRow;
+import lite.scheduler.core.vo.JobDetail;
+import lite.scheduler.core.vo.JobGroupDetail;
+import lite.scheduler.core.vo.ScheduleDetail;
 
 @Service
 public class WebService {
@@ -107,6 +109,18 @@ public class WebService {
 		jobDetail.setClassName(job.getClassName());
 		jobDetail.setParameters(job.getJobParameters());
 		return jobDetail;
+	}
+
+	public ResponseMessage setScheduleEnable(String id, ScheduledState state) {
+		Schedule schedule = scheduleRepo.findById(id).orElse(null);
+		if (schedule == null) {
+			return ResponseMessage.error("id not found");
+		} else {
+			schedule.setState(state);
+			scheduleRepo.save(schedule);
+			schedulerManipulator.updateSchedule(schedule);
+			return ResponseMessage.success("Update successfully");
+		}
 	}
 
 }

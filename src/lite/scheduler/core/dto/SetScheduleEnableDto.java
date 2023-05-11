@@ -1,17 +1,15 @@
 package lite.scheduler.core.dto;
 
+import javax.validation.constraints.NotBlank;
+
 import lite.scheduler.core.enums.ScheduledState;
 import lombok.Data;
 
 @Data
-public class GridJobRow {
+public class SetScheduleEnableDto {
 
-	Integer id;
-
-	String name;
-
-	Integer sequence;
+	@NotBlank
+	String id;
 
 	ScheduledState state;
-
 }

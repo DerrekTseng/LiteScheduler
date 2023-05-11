@@ -1,0 +1,32 @@
+.prompt {
+	width: 50vw;
+	position: fixed;
+	top: 10px;
+	left: 25vw;
+}
+
+.modal-footer-between {
+    justify-content: space-between;
+}
+
+.modal-footer-center {
+    justify-content: center;
+}
+
+.modal-window {
+	max-width: 80vw;
+}
+
+.modal-body-window {
+	min-height: 80vh;
+}
+
+.modal-window-iframe {
+	width: 100%;
+	height: 100%;
+	overflow: auto;
+	border: 0px;
+	position: absolute;
+	top:0px;
+	left: 0px;
+}

@@ -38,11 +38,11 @@ public class SchedulerManipulator {
 	@Autowired
 	ScheduleRepo scheduleRepo;
 
-	private Trigger createTrigger(String id, String cornExp, ScheduledState state) {
+	private Trigger createTrigger(JobDetail jobDetail, String cornExp, ScheduledState state) {
 		if (StringUtils.isEmpty(cornExp) || state == ScheduledState.Disabled) {
-			return TriggerBuilder.newTrigger().withIdentity(id).withSchedule(SimpleScheduleBuilder.simpleSchedule()).build();
+			return TriggerBuilder.newTrigger().forJob(jobDetail).withIdentity(jobDetail.getKey().getName()).startAt(new Date(Long.MAX_VALUE)).withSchedule(SimpleScheduleBuilder.simpleSchedule()).build();
 		} else {
-			return TriggerBuilder.newTrigger().withIdentity(id).withSchedule(CronScheduleBuilder.cronSchedule(cornExp)).build();
+			return TriggerBuilder.newTrigger().forJob(jobDetail).withIdentity(jobDetail.getKey().getName()).withSchedule(CronScheduleBuilder.cronSchedule(cornExp)).build();
 		}
 	}
 
@@ -58,7 +58,7 @@ public class SchedulerManipulator {
 			String cornExp = schedule.getCronExp();
 			ScheduledState state = schedule.getState();
 			JobDetail jobDetail = JobBuilder.newJob(InternalScheduledJob.class).withIdentity(id).storeDurably(true).build();
-			Trigger trigger = createTrigger(id, cornExp, state);
+			Trigger trigger = createTrigger(jobDetail, cornExp, state);
 			JobDataMap jobDataMap = jobDetail.getJobDataMap();
 			jobDataMap.put("scheduleId", id);
 			jobDataMap.put("executionType", ExecutionType.Schedule);
@@ -71,11 +71,12 @@ public class SchedulerManipulator {
 	public void updateSchedule(Schedule schedule) {
 		try {
 			log.info("Update schedule [{}][{}]", schedule.getId(), schedule.getName());
-			String id = schedule.getId();
 			String cornExp = schedule.getCronExp();
 			ScheduledState state = schedule.getState();
-			Trigger trigger = createTrigger(id, cornExp, state);
-			TriggerKey triggerKey = new TriggerKey(id);
+			TriggerKey triggerKey = new TriggerKey(schedule.getId());
+			JobKey jobKey = new JobKey(schedule.getId());
+			JobDetail jobDetail = scheduler.getJobDetail(jobKey);
+			Trigger trigger = createTrigger(jobDetail, cornExp, state);
 			scheduler.rescheduleJob(triggerKey, trigger);
 		} catch (SchedulerException e) {
 			throw new RuntimeException(e);
@@ -94,8 +95,12 @@ public class SchedulerManipulator {
 
 	public Date getNextFireDate(Schedule schedule) {
 		try {
-			TriggerKey triggerKey = new TriggerKey(schedule.getId());
-			return scheduler.getTrigger(triggerKey).getNextFireTime();
+			if (schedule.getState() == ScheduledState.Disabled) {
+				return null;
+			} else {
+				TriggerKey triggerKey = new TriggerKey(schedule.getId());
+				return scheduler.getTrigger(triggerKey).getNextFireTime();
+			}
 		} catch (SchedulerException e) {
 			throw new RuntimeException(e);
 		}

@@ -13,13 +13,17 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.event.EventListener;
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.format.FormatterRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import lite.scheduler.core.cmp.SchedulerManipulator;
 import lite.scheduler.core.enums.ExecutionStatus;
+import lite.scheduler.core.enums.ScheduledState;
 import lite.scheduler.core.repo.ExecutionHistoryRepo;
 
 @Configuration
-public class CoreConfiguration {
+public class CoreConfiguration implements WebMvcConfigurer {
 
 	private static ApplicationContext staticContext;
 
@@ -45,6 +49,20 @@ public class CoreConfiguration {
 
 		SchedulerManipulator schedulerManipulator = staticContext.getBean(SchedulerManipulator.class);
 		schedulerManipulator.registerSchedules();
+	}
+
+	@Override
+	public void addFormatters(FormatterRegistry registry) {
+		registry.addConverter(new Converter<String, ScheduledState>() {
+			@Override
+			public ScheduledState convert(String source) {
+				try {
+					return ScheduledState.valueOf(source);
+				} catch (IllegalArgumentException e) {
+					return null;
+				}
+			}
+		});
 	}
 
 	@Bean

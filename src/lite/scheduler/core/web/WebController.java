@@ -1,13 +1,21 @@
 package lite.scheduler.core.web;
 
+import javax.validation.Valid;
+
 import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
+
+import lite.scheduler.core.dto.ResponseMessage;
+import lite.scheduler.core.dto.SetScheduleEnableDto;
 
 @Controller
 @RequestMapping
@@ -29,6 +37,12 @@ public class WebController {
 		return view;
 	}
 
+	@ResponseBody
+	@PostMapping(value = "setScheduleEnable", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage setScheduleEnable(@Valid @RequestBody SetScheduleEnableDto setScheduleEnableDto) {
+		return service.setScheduleEnable(setScheduleEnableDto.getId(), setScheduleEnableDto.getState());
+	}
+
 	/**
 	 * 建立排程頁面
 	 * 
@@ -46,11 +60,11 @@ public class WebController {
 	 * 
 	 * @return
 	 */
+	@ResponseBody
 	@PostMapping("createScheduleSave")
-	public ModelAndView createScheduleSave() {
-		ModelAndView view = new ModelAndView("scheduleDetail");
+	public ResponseMessage createScheduleSave() {
 		// TODO
-		return view;
+		return null;
 	}
 
 	/**
@@ -72,11 +86,11 @@ public class WebController {
 	 * @param id
 	 * @return
 	 */
+	@ResponseBody
 	@PostMapping("scheduleDetailSave")
-	public ModelAndView scheduleDetailSave(String id) {
-		ModelAndView view = new ModelAndView("scheduleDetail");
+	public ResponseMessage scheduleDetailSave(String id) {
 		// TODO
-		return view;
+		return null;
 	}
 
 	/**
@@ -95,10 +109,10 @@ public class WebController {
 	 * 
 	 * @return
 	 */
-	public ModelAndView createJobGroupSave() {
-		ModelAndView view = new ModelAndView("scheduleDetail");
+	@ResponseBody
+	public ResponseMessage createJobGroupSave() {
 		// TODO
-		return view;
+		return null;
 	}
 
 	/**
@@ -118,10 +132,10 @@ public class WebController {
 	 * 
 	 * @return
 	 */
-	public ModelAndView jobGroupDetailSave() {
-		ModelAndView view = new ModelAndView("scheduleDetail");
+	@ResponseBody
+	public ResponseMessage jobGroupDetailSave() {
 		// TODO
-		return view;
+		return null;
 	}
 
 	/**

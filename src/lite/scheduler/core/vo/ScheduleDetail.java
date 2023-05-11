@@ -1,4 +1,4 @@
-package lite.scheduler.core.dto;
+package lite.scheduler.core.vo;
 
 import java.util.List;
 

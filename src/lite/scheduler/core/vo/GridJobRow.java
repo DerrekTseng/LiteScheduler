@@ -1,10 +1,10 @@
-package lite.scheduler.core.dto;
+package lite.scheduler.core.vo;
 
 import lite.scheduler.core.enums.ScheduledState;
 import lombok.Data;
 
 @Data
-public class GridJobGroupRow {
+public class GridJobRow {
 
 	Integer id;
 
