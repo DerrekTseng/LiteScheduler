@@ -1,4 +1,4 @@
-package lite.scheduler.core.bean;
+package lite.scheduler.core.cmp;
 
 import java.util.List;
 import java.util.Map;
@@ -12,8 +12,6 @@ import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 
-import lite.scheduler.core.interfaces.ScheduleJob;
-import lite.scheduler.core.vo.ExecuteParamenter;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -23,7 +21,7 @@ public class ModularTransactionManager {
 	final List<Entry<String, PlatformTransactionManager>> transactionManagers;
 	final ScheduleJob scheduleJob;
 
-	public ModularTransactionManager(Map<String, PlatformTransactionManager> transactionManagers, ScheduleJob scheduleJob) {
+	ModularTransactionManager(Map<String, PlatformTransactionManager> transactionManagers, ScheduleJob scheduleJob) {
 		this.transactionManagers = transactionManagers.entrySet().stream().collect(Collectors.toList());
 		this.scheduleJob = scheduleJob;
 	}
@@ -33,7 +31,7 @@ public class ModularTransactionManager {
 		if (transactionManagers.size() > transactionIndex.get()) {
 			int index = transactionIndex.getAndAdd(1);
 			String name = transactionManagers.get(index).getKey();
-			log.info("Create transaction: {}", name);
+			log.debug("Create transaction: {}", name);
 			PlatformTransactionManager transactionManager = transactionManagers.get(index).getValue();
 			DefaultTransactionDefinition definition = new DefaultTransactionDefinition();
 			definition.setName(UUID.randomUUID().toString());
@@ -41,10 +39,10 @@ public class ModularTransactionManager {
 			TransactionStatus status = transactionManager.getTransaction(definition);
 			try {
 				execute(executeParamenter, messageWriter);
-				log.info("Commit transaction: {}", name);
+				log.debug("Commit transaction: {}", name);
 				transactionManager.commit(status);
 			} catch (Exception e) {
-				log.info("Rollback transaction: {}", name);
+				log.debug("Rollback transaction: {}", name);
 				transactionManager.rollback(status);
 				throw e;
 			}

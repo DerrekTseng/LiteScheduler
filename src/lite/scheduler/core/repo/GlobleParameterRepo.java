@@ -1,13 +1,13 @@
-package lite.scheduler.core.repository;
+package lite.scheduler.core.repo;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import lite.scheduler.core.entity.JobGroup;
+import lite.scheduler.core.entity.GlobleParameter;
 
 @Repository
 @Transactional
-public interface JobGroupRepository  extends JpaRepository<JobGroup, Integer> {
+public interface GlobleParameterRepo extends JpaRepository<GlobleParameter, Integer> {
 
 }

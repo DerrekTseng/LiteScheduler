@@ -1,4 +1,4 @@
-package lite.scheduler.core.vo;
+package lite.scheduler.core.cmp;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -21,7 +21,7 @@ public class ExecuteParamenter {
 	private final Map<String, String> jobGroupParameter;
 	private final Map<String, String> jobParameter;
 
-	public ExecuteParamenter(List<GlobleParameter> globleParameters, List<ScheduleParameter> scheduleParameters, List<JobGroupParameter> jobGroupParameters, List<JobParameter> jobParameters) {
+	ExecuteParamenter(List<GlobleParameter> globleParameters, List<ScheduleParameter> scheduleParameters, List<JobGroupParameter> jobGroupParameters, List<JobParameter> jobParameters) {
 
 		Map<String, String> _globleParameter = new HashMap<>();
 		globleParameters.stream().filter(param -> {

@@ -1,4 +1,4 @@
-package lite.scheduler.core.bean;
+package lite.scheduler.core.cmp;
 
 import java.util.Date;
 import java.util.List;
@@ -15,7 +15,7 @@ import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import lite.scheduler.core.LiteSchedulerConfiguration;
+import lite.scheduler.core.CoreConfiguration;
 import lite.scheduler.core.entity.ExecutionHistory;
 import lite.scheduler.core.entity.GlobleParameter;
 import lite.scheduler.core.entity.JobGroup;
@@ -26,14 +26,11 @@ import lite.scheduler.core.entity.ScheduleParameter;
 import lite.scheduler.core.enums.ExecutionStatus;
 import lite.scheduler.core.enums.ExecutionType;
 import lite.scheduler.core.enums.ScheduledState;
-import lite.scheduler.core.interfaces.ScheduleJob;
-import lite.scheduler.core.repository.ExecutionHistoryRepository;
-import lite.scheduler.core.repository.GlobleParameterRepository;
-import lite.scheduler.core.repository.JobGroupRepository;
-import lite.scheduler.core.repository.JobRepository;
-import lite.scheduler.core.repository.ScheduleRepository;
-import lite.scheduler.core.vo.ExecuteParamenter;
-import lite.scheduler.core.web.LiteSchedulerService;
+import lite.scheduler.core.repo.ExecutionHistoryRepo;
+import lite.scheduler.core.repo.GlobleParameterRepo;
+import lite.scheduler.core.repo.JobGroupRepo;
+import lite.scheduler.core.repo.JobRepo;
+import lite.scheduler.core.repo.ScheduleRepo;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -41,10 +38,10 @@ final public class InternalScheduledJob implements Job {
 
 	private ApplicationContext applicationContext;
 
-	private LiteSchedulerService litechedulerService;
+	private SchedulerManipulator schedulerManipulator;
 	private JpaTransactionManager transactionManager;
 
-	GlobleParameterRepository globleParameterRepository;
+	GlobleParameterRepo globleParameterRepo;
 
 	private String executionId;
 
@@ -53,18 +50,18 @@ final public class InternalScheduledJob implements Job {
 
 		executionId = UUID.randomUUID().toString();
 
-		this.applicationContext = LiteSchedulerConfiguration.getApplicationContext();
+		this.applicationContext = CoreConfiguration.getApplicationContext();
 		this.transactionManager = applicationContext.getBean("core_transactionManager", JpaTransactionManager.class);
-		this.globleParameterRepository = applicationContext.getBean(GlobleParameterRepository.class);
-		this.litechedulerService = applicationContext.getBean(LiteSchedulerService.class);
+		this.globleParameterRepo = applicationContext.getBean(GlobleParameterRepo.class);
+		this.schedulerManipulator = applicationContext.getBean(SchedulerManipulator.class);
 
 		TransactionTemplate coreTransactionTemplate = new TransactionTemplate(this.transactionManager);
 		coreTransactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
 		coreTransactionTemplate.executeWithoutResult((state) -> {
 
-			ScheduleRepository scheduleRepository = applicationContext.getBean(ScheduleRepository.class);
-			JobGroupRepository jobGroupRepository = applicationContext.getBean(JobGroupRepository.class);
-			JobRepository jobRepository = applicationContext.getBean(JobRepository.class);
+			ScheduleRepo scheduleRepo = applicationContext.getBean(ScheduleRepo.class);
+			JobGroupRepo jobGroupRepo = applicationContext.getBean(JobGroupRepo.class);
+			JobRepo jobRepo = applicationContext.getBean(JobRepo.class);
 
 			JobDataMap jobDataMap = context.getMergedJobDataMap();
 
@@ -72,7 +69,7 @@ final public class InternalScheduledJob implements Job {
 
 			ExecutionType executionType = (ExecutionType) jobDataMap.get("executionType");
 
-			Schedule schedule = scheduleRepository.findById(scheduleId).orElse(null);
+			Schedule schedule = scheduleRepo.findById(scheduleId).orElse(null);
 
 			ThreadContext.put("scheduleId", schedule.getId());
 
@@ -85,7 +82,7 @@ final public class InternalScheduledJob implements Job {
 				return;
 			}
 
-			log.info("------------Start Schedule {} ------------", schedule.getName());
+			log.info("Start schedule [{}][{}]", schedule.getId(), schedule.getName());
 
 			try {
 
@@ -98,19 +95,19 @@ final public class InternalScheduledJob implements Job {
 					}
 				} else if (executionType == ExecutionType.Group) {
 					Integer executionId = (Integer) jobDataMap.get("executionId");
-					execute(jobGroupRepository.findById(executionId).orElse(null));
+					execute(jobGroupRepo.findById(executionId).orElse(null));
 				} else if (executionType == ExecutionType.Job) {
 					Integer executionId = (Integer) jobDataMap.get("executionId");
-					execute(jobRepository.findById(executionId).orElse(null));
+					execute(jobRepo.findById(executionId).orElse(null));
 				}
 
 			} catch (Exception e) {
 				log.error("", e);
 			} finally {
-				litechedulerService.setExecutionType(schedule, ExecutionType.Schedule);
+				schedulerManipulator.setExecutionType(schedule, ExecutionType.Schedule);
 			}
 
-			log.info("------------End Schedule {} ------------", schedule.getId());
+			log.info("End schedule [{}][{}]", schedule.getId(), schedule.getName());
 
 			ThreadContext.clearAll();
 
@@ -119,7 +116,7 @@ final public class InternalScheduledJob implements Job {
 	}
 
 	private void execute(JobGroup jobGroup) {
-		log.info("------------Start JobGroup {} ------------", jobGroup.getName());
+		log.info("Scheduling job group [{}]", jobGroup.getName());
 
 		List<lite.scheduler.core.entity.Job> jobList = jobGroup.getJobs().stream().filter(job -> {
 			return job.getState() == ScheduledState.Enabled;
@@ -133,11 +130,11 @@ final public class InternalScheduledJob implements Job {
 			log.error("", e);
 		}
 
-		log.info("------------End JobGroup {} ------------", jobGroup.getName());
+		log.info("Finished job group [{}]", jobGroup.getName());
 	}
 
 	private void execute(lite.scheduler.core.entity.Job job) throws Exception {
-		log.info("------------Start Job {} ------------", job.getName());
+		log.info("Execute job [{}]", job.getName());
 
 		MessageWriter messageWriter = new MessageWriter((line) -> log.info(line));
 		ExecutionHistory executionHistory = new ExecutionHistory();
@@ -146,7 +143,7 @@ final public class InternalScheduledJob implements Job {
 			Class<?> scheduleJobClass = Class.forName(jobClassName);
 			ScheduleJob scheduleJob = (ScheduleJob) applicationContext.getBean(scheduleJobClass);
 
-			List<GlobleParameter> globleParameters = globleParameterRepository.findAll();
+			List<GlobleParameter> globleParameters = globleParameterRepo.findAll();
 			List<ScheduleParameter> scheduleParameters = job.getJobGroup().getSchedule().getScheduleParameters();
 			List<JobGroupParameter> jobGroupParameter = job.getJobGroup().getJobGroupParameters();
 			List<JobParameter> jobParameter = job.getJobParameters();
@@ -179,15 +176,15 @@ final public class InternalScheduledJob implements Job {
 			throw e;
 		}
 
-		log.info("------------End Job {} ------------", job.getName());
+		log.info("Complete job [{}]", job.getName());
 	}
 
 	private void saveExecutionHistory(ExecutionHistory executionHistory) {
 		TransactionTemplate coreTransactionTemplate = new TransactionTemplate(this.transactionManager);
 		coreTransactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
 		coreTransactionTemplate.executeWithoutResult(state -> {
-			ExecutionHistoryRepository executionHistoryRepository = applicationContext.getBean(ExecutionHistoryRepository.class);
-			executionHistoryRepository.save(executionHistory);
+			ExecutionHistoryRepo executionHistoryRepo = applicationContext.getBean(ExecutionHistoryRepo.class);
+			executionHistoryRepo.save(executionHistory);
 		});
 
 	}

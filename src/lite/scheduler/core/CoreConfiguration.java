@@ -14,12 +14,12 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.event.EventListener;
 
+import lite.scheduler.core.cmp.SchedulerManipulator;
 import lite.scheduler.core.enums.ExecutionStatus;
-import lite.scheduler.core.repository.ExecutionHistoryRepository;
-import lite.scheduler.core.web.LiteSchedulerService;
+import lite.scheduler.core.repo.ExecutionHistoryRepo;
 
 @Configuration
-public class LiteSchedulerConfiguration {
+public class CoreConfiguration {
 
 	private static ApplicationContext staticContext;
 
@@ -27,7 +27,7 @@ public class LiteSchedulerConfiguration {
 	ApplicationContext context;
 
 	@Autowired
-	ExecutionHistoryRepository executionHistoryRepository;
+	ExecutionHistoryRepo executionHistoryRepo;
 
 	@Autowired
 	@Qualifier("quartzSchedulerThreadSize")
@@ -36,15 +36,15 @@ public class LiteSchedulerConfiguration {
 	@EventListener(ApplicationReadyEvent.class)
 	void afterStartup() {
 		staticContext = context;
-		executionHistoryRepository.findAll().stream().filter(executionHistory -> {
+		executionHistoryRepo.findAll().stream().filter(executionHistory -> {
 			return executionHistory.getExecutionStatus() == ExecutionStatus.Running;
 		}).forEach(executionHistory -> {
 			executionHistory.setExecutionStatus(ExecutionStatus.Terminated);
-			executionHistoryRepository.save(executionHistory);
+			executionHistoryRepo.save(executionHistory);
 		});
 
-		LiteSchedulerService iiteSchedulerService = staticContext.getBean(LiteSchedulerService.class);
-		iiteSchedulerService.registerSchedules();
+		SchedulerManipulator schedulerManipulator = staticContext.getBean(SchedulerManipulator.class);
+		schedulerManipulator.registerSchedules();
 	}
 
 	@Bean

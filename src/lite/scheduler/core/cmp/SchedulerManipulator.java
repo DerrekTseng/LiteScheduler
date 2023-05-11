@@ -1,4 +1,4 @@
-package lite.scheduler.core.web;
+package lite.scheduler.core.cmp;
 
 import java.util.Date;
 
@@ -16,26 +16,27 @@ import org.quartz.TriggerBuilder;
 import org.quartz.TriggerKey;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
-import lite.scheduler.core.bean.InternalScheduledJob;
+import lite.scheduler.core.entity.Job;
 import lite.scheduler.core.entity.JobGroup;
 import lite.scheduler.core.entity.Schedule;
 import lite.scheduler.core.enums.ExecutionType;
 import lite.scheduler.core.enums.ScheduledState;
-import lite.scheduler.core.repository.ScheduleRepository;
+import lite.scheduler.core.repo.ScheduleRepo;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@Service
-public class LiteSchedulerService {
+@Component
+public class SchedulerManipulator {
 
 	@Autowired
 	@Qualifier("coreScheduler")
 	private Scheduler scheduler;
 
 	@Autowired
-	ScheduleRepository scheduleRepository;
+	ScheduleRepo scheduleRepo;
 
 	private Trigger createTrigger(String id, String cornExp, ScheduledState state) {
 		if (StringUtils.isEmpty(cornExp) || state == ScheduledState.Disabled) {
@@ -45,13 +46,14 @@ public class LiteSchedulerService {
 		}
 	}
 
+	@Transactional
 	public void registerSchedules() {
-		scheduleRepository.findAll().forEach(this::addSchedule);
+		scheduleRepo.findAll().forEach(this::addSchedule);
 	}
 
 	public void addSchedule(Schedule schedule) {
 		try {
-			log.info("register schedule {}", schedule);
+			log.info("Register schedule [{}][{}]", schedule.getId(), schedule.getName());
 			String id = schedule.getId();
 			String cornExp = schedule.getCronExp();
 			ScheduledState state = schedule.getState();
@@ -68,7 +70,7 @@ public class LiteSchedulerService {
 
 	public void updateSchedule(Schedule schedule) {
 		try {
-			log.info("update schedule {}", schedule);
+			log.info("Update schedule [{}][{}]", schedule.getId(), schedule.getName());
 			String id = schedule.getId();
 			String cornExp = schedule.getCronExp();
 			ScheduledState state = schedule.getState();
@@ -82,6 +84,7 @@ public class LiteSchedulerService {
 
 	public void removeSchedule(Schedule schedule) {
 		try {
+			log.info("Remove schedule [{}][{}]", schedule.getId(), schedule.getName());
 			JobKey jobKey = new JobKey(schedule.getId());
 			scheduler.deleteJob(jobKey);
 		} catch (SchedulerException e) {
@@ -100,6 +103,7 @@ public class LiteSchedulerService {
 
 	public void fire(Schedule schedule) {
 		try {
+			log.info("Fire schedule [{}][{}]", schedule.getId(), schedule.getName());
 			String scheduleId = schedule.getId();
 			JobKey jobKey = new JobKey(scheduleId);
 			JobDataMap jobDataMap = scheduler.getJobDetail(jobKey).getJobDataMap();
@@ -112,6 +116,7 @@ public class LiteSchedulerService {
 
 	public void fire(JobGroup jobGroup) {
 		try {
+			log.info("Fire group [{}][{}][{}]", jobGroup.getSchedule().getId(), jobGroup.getSchedule().getName(), jobGroup.getName());
 			String scheduleId = jobGroup.getSchedule().getId();
 			JobKey jobKey = new JobKey(scheduleId);
 			JobDataMap jobDataMap = scheduler.getJobDetail(jobKey).getJobDataMap();
@@ -123,8 +128,9 @@ public class LiteSchedulerService {
 		}
 	}
 
-	public void fire(lite.scheduler.core.entity.Job job) {
+	public void fire(Job job) {
 		try {
+			log.info("Fire group [{}][{}][{}][{}]", job.getJobGroup().getSchedule().getId(), job.getJobGroup().getSchedule().getName(), job.getJobGroup().getName(), job.getName());
 			String scheduleId = job.getJobGroup().getSchedule().getId();
 			JobKey jobKey = new JobKey(scheduleId);
 			JobDataMap jobDataMap = scheduler.getJobDetail(jobKey).getJobDataMap();
@@ -146,5 +152,4 @@ public class LiteSchedulerService {
 			throw new RuntimeException(e);
 		}
 	}
-
 }

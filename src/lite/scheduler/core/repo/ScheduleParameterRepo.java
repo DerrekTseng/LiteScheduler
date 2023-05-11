@@ -1,13 +1,13 @@
-package lite.scheduler.custom.repository;
+package lite.scheduler.core.repo;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import lite.scheduler.custom.entity.TestTable;
+import lite.scheduler.core.entity.ScheduleParameter;
 
 @Repository
 @Transactional
-public interface TestTableRepo extends JpaRepository<TestTable, Integer> {
+public interface ScheduleParameterRepo  extends JpaRepository<ScheduleParameter, Integer> {
 
 }

@@ -1,16 +1,20 @@
-package lite.scheduler.core.bean;
+package lite.scheduler.core.cmp;
 
 import java.util.function.Consumer;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class MessageWriter {
 
 	private final Consumer<String> consumer;
 
-	public MessageWriter(Consumer<String> consumer) {
+	MessageWriter(Consumer<String> consumer) {
 		this.consumer = consumer;
 	}
 
 	public void writeLine(String line) {
+		log.info(line);
 		consumer.accept(line);
 	}
 
