@@ -17,13 +17,13 @@ import lite.scheduler.core.vo.ExecuteParamenter;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class OrderedTransactions {
+public class ModularTransactionManager {
 	AtomicInteger transactionIndex = new AtomicInteger(0);
 
 	final List<Entry<String, PlatformTransactionManager>> transactionManagers;
 	final ScheduleJob scheduleJob;
 
-	public OrderedTransactions(Map<String, PlatformTransactionManager> transactionManagers, ScheduleJob scheduleJob) {
+	public ModularTransactionManager(Map<String, PlatformTransactionManager> transactionManagers, ScheduleJob scheduleJob) {
 		this.transactionManagers = transactionManagers.entrySet().stream().collect(Collectors.toList());
 		this.scheduleJob = scheduleJob;
 	}
