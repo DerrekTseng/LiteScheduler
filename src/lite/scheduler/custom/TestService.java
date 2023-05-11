@@ -2,16 +2,15 @@ package lite.scheduler.custom;
 
 import java.util.ArrayList;
 
-import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import lite.scheduler.core.entity.Job;
 import lite.scheduler.core.entity.JobGroup;
 import lite.scheduler.core.entity.Schedule;
 import lite.scheduler.core.enums.ScheduledState;
 import lite.scheduler.core.repository.ScheduleRepository;
-import lite.scheduler.core.web.InternalSchedulerService;
 
 @Service
 public class TestService {
@@ -19,13 +18,7 @@ public class TestService {
 	@Autowired
 	ScheduleRepository scheduleRepository;
 
-	@Autowired
-	InternalSchedulerService internalSchedulerService;
-
-	public void registerSchedules() {
-		internalSchedulerService.registerSchedules();
-	}
-
+	@Transactional
 	public void insertTestJob() {
 
 		String scheduleId = "TestSchedule";
@@ -34,10 +27,10 @@ public class TestService {
 			Schedule schedule = new Schedule();
 			schedule.setId(scheduleId);
 			schedule.setName("Test Test");
-			schedule.setCronExp("");
+			schedule.setCronExp("0/10 * * ? * * *");
 			schedule.setDescription("TT");
 			schedule.setJobGroups(new ArrayList<>());
-			schedule.setState(ScheduledState.Disabled);
+			schedule.setState(ScheduledState.Enabled);
 
 			JobGroup jobGroup = new JobGroup();
 			jobGroup.setName("AAAA");
@@ -61,23 +54,6 @@ public class TestService {
 
 		}
 
-	}
-
-	private Schedule getSchedule() {
-		String scheduleId = "TestSchedule";
-		return scheduleRepository.findById(scheduleId).orElse(null);
-	}
-
-	public void fireSchedule() throws SchedulerException {
-		internalSchedulerService.fire(getSchedule());
-	}
-
-	public void fireGroup() throws SchedulerException {
-		internalSchedulerService.fire(getSchedule().getJobGroups().get(0));
-	}
-
-	public void fireJob() throws SchedulerException {
-		internalSchedulerService.fire(getSchedule().getJobGroups().get(0).getJobs().get(0));
 	}
 
 }

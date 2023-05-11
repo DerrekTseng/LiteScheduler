@@ -8,6 +8,6 @@
 	<import resource="coreConfiguration.xml" />
 
 	<!-- Add your custom configuration -->	
-	<!-- <import resource="customConfiguration.xml" /> -->
+	<import resource="customConfiguration.xml" />
 	 	
 </beans>

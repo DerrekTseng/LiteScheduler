@@ -47,4 +47,8 @@ public class Schedule {
 	@OneToMany(mappedBy = "schedule", cascade = CascadeType.ALL)
 	List<ScheduleParameter> scheduleParameters;
 
+	@OrderBy("startDt desc")
+	@OneToMany(mappedBy = "schedule", cascade = CascadeType.ALL)
+	List<ExecutionHistory> executionHistories;
+
 }

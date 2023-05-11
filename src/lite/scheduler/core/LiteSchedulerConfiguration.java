@@ -16,7 +16,7 @@ import org.springframework.context.event.EventListener;
 
 import lite.scheduler.core.enums.ExecutionStatus;
 import lite.scheduler.core.repository.ExecutionHistoryRepository;
-import lite.scheduler.core.web.InternalSchedulerService;
+import lite.scheduler.core.web.LiteSchedulerService;
 
 @Configuration
 public class LiteSchedulerConfiguration {
@@ -42,8 +42,9 @@ public class LiteSchedulerConfiguration {
 			executionHistory.setExecutionStatus(ExecutionStatus.Terminated);
 			executionHistoryRepository.save(executionHistory);
 		});
-		InternalSchedulerService internalSchedulerService = staticContext.getBean(InternalSchedulerService.class);
-		internalSchedulerService.registerSchedules();
+
+		LiteSchedulerService iiteSchedulerService = staticContext.getBean(LiteSchedulerService.class);
+		iiteSchedulerService.registerSchedules();
 	}
 
 	@Bean

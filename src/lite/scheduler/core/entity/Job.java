@@ -10,6 +10,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.OrderBy;
 import javax.persistence.Table;
 
 import org.hibernate.annotations.Type;
@@ -51,5 +52,9 @@ public class Job {
 
 	@OneToMany(mappedBy = "job", cascade = CascadeType.ALL)
 	List<JobParameter> jobParameters;
+
+	@OrderBy("startDt desc")
+	@OneToMany(mappedBy = "job", cascade = CascadeType.ALL)
+	List<ExecutionHistory> executionHistories;
 
 }

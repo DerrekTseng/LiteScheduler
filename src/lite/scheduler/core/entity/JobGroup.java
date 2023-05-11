@@ -53,4 +53,8 @@ public class JobGroup {
 	@OneToMany(mappedBy = "jobGroup", cascade = CascadeType.ALL)
 	List<JobGroupParameter> jobGroupParameters;
 
+	@OrderBy("startDt desc")
+	@OneToMany(mappedBy = "jobGroup", cascade = CascadeType.ALL)
+	List<ExecutionHistory> executionHistories;
+
 }

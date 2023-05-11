@@ -1,4 +1,4 @@
-package lite.scheduler.core.bean;
+package lite.scheduler.core.vo;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -10,8 +10,10 @@ import lite.scheduler.core.entity.JobGroupParameter;
 import lite.scheduler.core.entity.JobParameter;
 import lite.scheduler.core.entity.ScheduleParameter;
 import lombok.Getter;
+import lombok.ToString;
 
 @Getter
+@ToString
 public class ExecuteParamenter {
 
 	private final Map<String, String> globleParameter;
