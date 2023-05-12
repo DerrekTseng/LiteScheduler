@@ -16,28 +16,27 @@
 
 			ElementUtils.cronTimeSelections({
 				month: {
-					dom: document.getElementById("scheduleTimeMonth"),
+					dom: myForm.scheduleTimeMonth,
 					value: -1
 				},
 				day: {
-					dom: document.getElementById("scheduleTimeDay"),
+					dom: myForm.scheduleTimeDay,
 					value: -1
 				},
 				hour: {
-					dom: document.getElementById("scheduleTimeHour"),
+					dom: myForm.scheduleTimeHour,
 					value: -1
 				},
 				minute: {
-					dom: document.getElementById("scheduleTimeMinute"),
+					dom: myForm.scheduleTimeMinute,
 					value: -1
 				},
 				second: {
-					dom: document.getElementById("scheduleTimeSecond"),
+					dom: myForm.scheduleTimeSecond,
 					value: -1
 				},
-			})
-
-
+			});
+			
 		});
 
 
@@ -78,19 +77,25 @@
 	<div class="container-fluid p-3">
 
 		<div class="row p-3">
-			<form name="myForm" novalidate>
+			<form name="myForm">
 				<table class="table table-borderless">
 					<tr>
 						<td>
-							<div class="input-group has-validation">
+							<div class="input-group">
 								<span class="input-group-text">排程代號</span>
 								<input name="scheduleId" type="text" class="form-control" required>
+								<div class="invalid-tooltip">
+									「排程代號」不能為空
+								</div>
 							</div>
 						</td>
 						<td>
 							<div class="input-group has-validation">
 								<span class="input-group-text">排程名稱</span>
 								<input name="scheduleName" type="text" class="form-control" required>
+								<div class="invalid-tooltip">
+									「排程名稱」不能為空
+								</div>
 							</div>
 						</td>
 					</tr>
@@ -98,24 +103,19 @@
 						<td colspan="2">
 							<div class="input-group">
 								<span class="input-group-text">排程時間</span>
-								<select class="form-select text-center" id="scheduleTimeMonth"
-									name="scheduleTimeMonth"></select>
+								<select class="form-select text-center" name="scheduleTimeMonth"></select>
 								<label class="input-group-text" for="scheduleTimeMonth">月</label>
 
-								<select class="form-select text-center" id="scheduleTimeDay"
-									name="scheduleTimeDay"></select>
+								<select class="form-select text-center"name="scheduleTimeDay"></select>
 								<label class="input-group-text" for="scheduleTimeDay">日</label>
 
-								<select class="form-select text-center" id="scheduleTimeHour"
-									name="scheduleTimeHour"></select>
+								<select class="form-select text-center" name="scheduleTimeHour"></select>
 								<label class="input-group-text" for="scheduleTimeHour">時</label>
 
-								<select class="form-select text-center" id="scheduleTimeMinute"
-									name="scheduleTimeMinute"></select>
+								<select class="form-select text-center" name="scheduleTimeMinute"></select>
 								<label class="input-group-text" for="scheduleTimeMinute">分</label>
 
-								<select class="form-select text-center" id="scheduleTimeSecond"
-									name="scheduleTimeSecond"></select>
+								<select class="form-select text-center" name="scheduleTimeSecond"></select>
 								<label class="input-group-text" for="scheduleTimeSecond">秒</label>
 							</div>
 						</td>
@@ -125,6 +125,9 @@
 							<div class="input-group">
 								<span class="input-group-text">排程描述</span>
 								<textarea name="scheduleDescription" class="form-control" required></textarea>
+								<div class="invalid-tooltip">
+									「排程描述」不能為空
+								</div>
 							</div>
 						</td>
 					</tr>

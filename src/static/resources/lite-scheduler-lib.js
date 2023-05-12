@@ -159,6 +159,9 @@ var DocumentUtils = {
 	bootstrap: top.bootstrap,
 	ready: (callback = () => { }) => {
 		window.onload = callback;
+	},
+	isFunction(functionToCheck) {
+		return functionToCheck && {}.toString.call(functionToCheck) === '[object Function]';
 	}
 }
 
@@ -245,9 +248,20 @@ var ElementUtils = top.ElementUtils || {
 			let $tr = ElementUtils.createElement("<tr></tr>");
 			let tdBuffer = [];
 			tbody.forEach((_item) => {
-				let _clazz = _item.class ? `class="${_item.clazz}"` : "";
+				let _clazz = _item.clazz ? `class="${_item.clazz}"` : "";
 				let _style = _item.style ? `style="${_item.style}"` : "";
-				let html = `<td ${_clazz} ${_style}>${_item.html}</td>`;
+
+				let _html;
+
+				if (_item.html) {
+					_html = _item.html;
+				} else if (DocumentUtils.isFunction(_item.parse)) {
+					_html = _item.parse(item);
+				} else {
+					_html = "";
+				}
+
+				let html = `<td ${_clazz} ${_style}>${_html}</td>`;
 				tdBuffer.push(TextUtils.tranPattern(html, item));
 			});
 			$tr.innerHTML = tdBuffer.join("");
@@ -310,10 +324,10 @@ var TextUtils = top.TextUtils || {
 		}
 		return result.join('');
 	},
-	/**  將字串裡面的 @{key} 轉換成 json 的 value */
 	tranPattern(text, item) {
+		let key;
 		Object.keys(item).forEach(function(k) {
-			let key = "@{" + k + "}";
+			key = "@{" + k + "}";
 			while (text.includes(key)) {
 				if (item[k] || item[k] == 0) {
 					text = text.replace(key, item[k]);
@@ -321,7 +335,6 @@ var TextUtils = top.TextUtils || {
 					text = text.replace(key, "");
 				}
 			}
-
 			key = "@{" + k + ":date}";
 			while (text.includes(key)) {
 				if (item[k]) {

@@ -23,6 +23,21 @@
 			});
 		}
 
+		function parseExecutedState(data) {
+			switch (data.lastExecutedState) {
+				case 'Running':
+					return "執行中";
+				case 'Succeeded':
+					return "成功";
+				case 'Failed':
+					return "失敗";
+				case 'Terminated':
+					return "被終止";
+				default:
+					return "";
+			}
+		}
+
 		function renderTable(data) {
 			ElementUtils.renderTable({
 				table: document.getElementById("table"),
@@ -43,7 +58,7 @@
 					{html: "@{id}"},
 					{html: "@{name}"},
 					{html: "@{lastEndDate:date}"},
-					{html: "@{lastExecutedState}"},
+					{parse: parseExecutedState, clazz: "text-center"},
 					{html: "@{nextStartDate:date}"},
 					{html: "<select select-state class='form-select'></select>"},
 					{html: ElementUtils.iconButtonHtml("btn-history", "secondary", "book")},
@@ -54,7 +69,7 @@
 				treach: (item, $tr) => {
 
 					let $select = $tr.querySelector("[select-state]");
-					
+
 					ElementUtils.selectOptions($select, [
 						{text: "啟用", value: "Enabled"},
 						{text: "停用", value: "Disabled"}
