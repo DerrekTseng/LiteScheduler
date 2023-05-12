@@ -1,4 +1,15 @@
-const DialogUtils = {
+var dialogWindowCallbacks = top.dialogWindowCallbacks || new Map();
+
+var TimeoutUtils = top.TimeoutUtils || {
+	setTimeout: (callback, interval) => {
+		return setTimeout(callback, interval);
+	},
+	clearTimeout: (id) => {
+		clearTimeout(id);
+	}
+}
+
+var DialogUtils = top.DialogUtils || {
 	alert: (options = {}) => {
 		let title = options.title || "";
 		let text = options.text || "";
@@ -26,7 +37,7 @@ const DialogUtils = {
 		let e = ElementUtils.createElement(html);
 
 		e.addEventListener('hidden.bs.modal', () => {
-			document.body.removeChild(e);
+			ElementUtils.removeFromTop(e);
 		});
 		e.querySelector("[data-title-close]").addEventListener('click', () => {
 			callback();
@@ -35,9 +46,9 @@ const DialogUtils = {
 			callback();
 		});
 
-		document.body.appendChild(e);
+		ElementUtils.appendToTop(e);
 
-		new bootstrap.Modal(e).show();
+		new ElementUtils.bootstrap.Modal(e).show();
 	},
 	confirm: (options = {}) => {
 		let title = options.title || "";
@@ -70,7 +81,7 @@ const DialogUtils = {
 		let e = ElementUtils.createElement(html);
 
 		e.addEventListener('hidden.bs.modal', function() {
-			document.body.removeChild(e);
+			ElementUtils.removeFromTop(e);
 		});
 		e.querySelector("[data-title-close]").addEventListener('click', () => {
 			onCancel();
@@ -82,9 +93,9 @@ const DialogUtils = {
 			onConfirm();
 		});
 
-		document.body.appendChild(e);
+		ElementUtils.appendToTop(e);
 
-		new bootstrap.Modal(e).show();
+		new ElementUtils.bootstrap.Modal(e).show();
 	},
 	window: (options = {}) => {
 		let title = options.title || "";
@@ -112,34 +123,50 @@ const DialogUtils = {
 		let e = ElementUtils.createElement(html);
 
 		e.addEventListener('hidden.bs.modal', function() {
-			document.body.removeChild(e);
+			ElementUtils.removeFromTop(e);
+			dialogWindowCallbacks.delete(id);
 		});
 
 		e.querySelector("[data-title-close]").addEventListener('click', () => {
 			callback();
 		});
 
-		document.body.appendChild(e);
+		ElementUtils.appendToTop(e);
 
-		let windowModal = new bootstrap.Modal(e);
+		let windowModal = new ElementUtils.bootstrap.Modal(e);
 		windowModal.show();
+
+		dialogWindowCallbacks.set(id, callback);
+
 	},
-	closeWindow() {
-		let windowModal = top.bootstrap.Modal.getInstance(top.document.getElementById("modal-" + window.frameElement.id));
+	closeWindow(e, data) {
+		let id = e.frameElement.id;
+		let windowModal = ElementUtils.bootstrap.Modal.getInstance(top.document.getElementById("modal-" + id));
+		dialogWindowCallbacks.get(id)(data);
 		windowModal.hide();
 	}
 }
 
-const ElementUtils = {
+var ElementUtils = top.ElementUtils || {
 	createElement: (html) => {
 		let template = document.createElement('template');
 		html = html.trim();
 		template.innerHTML = html;
 		return template.content.firstChild;
+	},
+	appendToTop: (e) => {
+		top.document.body.appendChild(e);
+	},
+	removeFromTop: (e) => {
+		top.document.body.removeChild(e);
+	},
+	bootstrap: top.bootstrap,
+	ready: (callback = () => { }) => {
+		window.onload = callback;
 	}
 }
 
-const PromptUtils = {
+var PromptUtils = top.PromptUtils || {
 	info: (msg) => {
 		PromptUtils.prompt("alert-info", msg);
 	},
@@ -153,24 +180,29 @@ const PromptUtils = {
 		PromptUtils.prompt("alert-danger", msg);
 	},
 	prompt: (alertClass = "", msg = "") => {
+
 		let html = ` 
-			<div class="alert ${alertClass} prompt" role="alert">
+			<div class="alert ${alertClass} prompt" role="alert" style="z-index: 2080">
 			  ${msg}
 			</div> 
 		`;
+
 		let e = ElementUtils.createElement(html);
-		document.body.appendChild(e);
-		let timeout = setTimeout(() => {
-			document.body.removeChild(e);
+
+		ElementUtils.appendToTop(e);
+
+		let timeout = TimeoutUtils.setTimeout(function() {
+			ElementUtils.removeFromTop(e);
 		}, 3000);
+
 		e.addEventListener('click', () => {
-			document.body.removeChild(e);
-			clearTimeout(timeout);
+			ElementUtils.removeFromTop(e);
+			TimeoutUtils.clearTimeout(timeout);
 		});
 	}
 }
 
-const TextUtils = {
+var TextUtils = top.TextUtils || {
 	randonString: (length = 0) => {
 		let result = [];
 		let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
@@ -179,5 +211,50 @@ const TextUtils = {
 			result.push(characters.charAt(Math.floor(Math.random() * charactersLength)));
 		}
 		return result.join('');
+	},
+	/**  將字串裡面的 @{key} 轉換成 json 的 value */
+	tranPattern(text, item) {
+		Object.keys(item).forEach(function(k) {
+			let key = "@{" + k + "}";
+			while (text.includes(key)) {
+				text = text.replace(key, item[k]);
+			}
+		});
+		return text;
 	}
+}
+
+var HttpUtils = top.HttpUtils || {
+	doPost: (options = {}) => {
+		let url = options.url || "";
+		let data = options.data || {};
+		let success = options.success || function() { };
+		let error = options.error || function() { };
+
+		fetch(url, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				"Accept": "application/json"
+			},
+			body: JSON.stringify(data)
+		}).then((response) => {
+			if (response.ok) {
+				response.json().then((responseData) => {
+					success(responseData, response);
+				});
+			} else {
+				response.json().then((responseData) => {
+					PromptUtils.error(responseData.message);
+					error(responseData, response);
+				});
+			}
+		}).catch((response) => {
+			error(response);
+		});
+	}
+}
+
+var ValidateUtils = {
+
 }

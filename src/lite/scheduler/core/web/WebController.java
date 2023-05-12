@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
 import lite.scheduler.core.dto.ResponseMessage;
+import lite.scheduler.core.dto.SaveScheduleDto;
 import lite.scheduler.core.dto.SetScheduleEnableDto;
 
 @Controller
@@ -51,7 +52,6 @@ public class WebController {
 	@GetMapping("createSchedule")
 	public ModelAndView createSchedule() {
 		ModelAndView view = new ModelAndView("createSchedule");
-		// TODO
 		return view;
 	}
 
@@ -61,10 +61,9 @@ public class WebController {
 	 * @return
 	 */
 	@ResponseBody
-	@PostMapping("createScheduleSave")
-	public ResponseMessage createScheduleSave() {
-		// TODO
-		return null;
+	@PostMapping(value = "createScheduleSave", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseMessage createScheduleSave(@Valid @RequestBody SaveScheduleDto saveScheduleDto) {
+		return service.createScheduleSave(saveScheduleDto);
 	}
 
 	/**

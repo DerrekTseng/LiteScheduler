@@ -7,10 +7,42 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link th:href="@{/bootstrap@5.0.2/bootstrap.min.css}" rel="stylesheet" />
 	<script th:src="@{/bootstrap@5.0.2/bootstrap.bundle.min.js}"></script>
+	<link th:href="@{/bootstrap-icons@1.9.0/bootstrap-icons.css}" rel="stylesheet" />
 	<link th:href="@{/lite-scheduler-lib.css}" rel="stylesheet" />
 	<script th:src="@{/lite-scheduler-lib.js}"></script>
 	<script th:inline="javascript">
-		function closeWindow(){
+		function save() {
+			let validated = myForm.checkValidity();
+			myForm.classList.add('was-validated');
+
+			if (validated) {
+				let formData = {
+					id: myForm.scheduleId.value,
+					name: myForm.scheduleName.value,
+					month: myForm.scheduleTimeMonth.value,
+					day: myForm.scheduleTimeDay.value,
+					hour: myForm.scheduleTimeHour.value,
+					minute: myForm.scheduleTimeMinute.value,
+					second: myForm.scheduleTimeSecond.value,
+					description: myForm.scheduleDescription.value
+				};
+				HttpUtils.doPost({
+					url: "createScheduleSave",
+					data: formData,
+					success: (data) => {
+						if (data.succeeded) {
+							PromptUtils.success(data.message);
+							DialogUtils.closeWindow(window, {result: true});
+						} else {
+							PromptUtils.error(data.message);
+						}
+					}
+				});
+			}
+
+		}
+
+		function closeWindow() {
 			DialogUtils.closeWindow();
 		}
 	</script>
@@ -18,13 +50,259 @@
 
 <body>
 
-	<div class="container">
-		<button th:onclick="closeWindow()" th:text="close"/>
-		<br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1><br/><h1>1</h1>
-		
-		
+	<div class="container-fluid p-3">
+
+		<div class="row p-3">
+			<form name="myForm" novalidate>
+				<table class="table table-borderless">
+					<tr>
+						<td>
+							<div class="input-group has-validation">
+								<span class="input-group-text">排程代號</span>
+								<input name="scheduleId" type="text" class="form-control" required>
+							</div>
+						</td>
+						<td>
+							<div class="input-group has-validation">
+								<span class="input-group-text">排程名稱</span>
+								<input name="scheduleName" type="text" class="form-control" required>
+							</div>
+						</td>
+					</tr>
+					<tr>
+						<td colspan="2">
+							<div class="input-group">
+								<span class="input-group-text">排程時間</span>
+								<select class="form-select text-center" name="scheduleTimeMonth">
+									<option value="-1">未指定</option>
+									<option value="1">1</option>
+									<option value="2">2</option>
+									<option value="3">3</option>
+									<option value="4">4</option>
+									<option value="5">5</option>
+									<option value="6">6</option>
+									<option value="7">7</option>
+									<option value="8">8</option>
+									<option value="9">9</option>
+									<option value="10">10</option>
+									<option value="11">11</option>
+									<option value="12">12</option>
+								</select>
+								<label class="input-group-text" for="scheduleTimeMonth">月</label>
+								<select class="form-select text-center" name="scheduleTimeDay">
+									<option value="-1">未指定</option>
+									<option value="1">1</option>
+									<option value="2">2</option>
+									<option value="3">3</option>
+									<option value="4">4</option>
+									<option value="5">5</option>
+									<option value="6">6</option>
+									<option value="7">7</option>
+									<option value="8">8</option>
+									<option value="9">9</option>
+									<option value="10">10</option>
+									<option value="11">11</option>
+									<option value="12">12</option>
+									<option value="13">13</option>
+									<option value="14">14</option>
+									<option value="15">15</option>
+									<option value="16">16</option>
+									<option value="17">17</option>
+									<option value="18">18</option>
+									<option value="19">19</option>
+									<option value="20">20</option>
+									<option value="21">21</option>
+									<option value="22">22</option>
+									<option value="23">23</option>
+									<option value="24">24</option>
+									<option value="25">25</option>
+									<option value="26">26</option>
+									<option value="27">27</option>
+									<option value="28">28</option>
+									<option value="29">29</option>
+									<option value="30">30</option>
+									<option value="31">31</option>
+								</select>
+								<label class="input-group-text" for="scheduleTimeDay">日</label>
+								<select class="form-select text-center" name="scheduleTimeHour">
+									<option value="-1">未指定</option>
+									<option value="0">0</option>
+									<option value="1">1</option>
+									<option value="2">2</option>
+									<option value="3">3</option>
+									<option value="4">4</option>
+									<option value="5">5</option>
+									<option value="6">6</option>
+									<option value="7">7</option>
+									<option value="8">8</option>
+									<option value="9">9</option>
+									<option value="10">10</option>
+									<option value="11">11</option>
+									<option value="12">12</option>
+									<option value="13">13</option>
+									<option value="14">14</option>
+									<option value="15">15</option>
+									<option value="16">16</option>
+									<option value="17">17</option>
+									<option value="18">18</option>
+									<option value="19">19</option>
+									<option value="20">20</option>
+									<option value="21">21</option>
+									<option value="22">22</option>
+									<option value="23">23</option>
+								</select>
+								<label class="input-group-text" for="scheduleTimeHour">時</label>
+								<select class="form-select text-center" name="scheduleTimeMinute">
+									<option value="-1">未指定</option>
+									<option value="0">0</option>
+									<option value="1">1</option>
+									<option value="2">2</option>
+									<option value="3">3</option>
+									<option value="4">4</option>
+									<option value="5">5</option>
+									<option value="6">6</option>
+									<option value="7">7</option>
+									<option value="8">8</option>
+									<option value="9">9</option>
+									<option value="10">10</option>
+									<option value="11">11</option>
+									<option value="12">12</option>
+									<option value="13">13</option>
+									<option value="14">14</option>
+									<option value="15">15</option>
+									<option value="16">16</option>
+									<option value="17">17</option>
+									<option value="18">18</option>
+									<option value="19">19</option>
+									<option value="20">20</option>
+									<option value="21">21</option>
+									<option value="22">22</option>
+									<option value="23">23</option>
+									<option value="24">24</option>
+									<option value="25">25</option>
+									<option value="26">26</option>
+									<option value="27">27</option>
+									<option value="28">28</option>
+									<option value="29">29</option>
+									<option value="30">30</option>
+									<option value="31">31</option>
+									<option value="32">32</option>
+									<option value="33">33</option>
+									<option value="34">34</option>
+									<option value="35">35</option>
+									<option value="36">36</option>
+									<option value="37">37</option>
+									<option value="38">38</option>
+									<option value="39">39</option>
+									<option value="40">40</option>
+									<option value="41">41</option>
+									<option value="42">42</option>
+									<option value="43">43</option>
+									<option value="44">44</option>
+									<option value="45">45</option>
+									<option value="46">46</option>
+									<option value="47">47</option>
+									<option value="48">48</option>
+									<option value="49">49</option>
+									<option value="50">50</option>
+									<option value="51">51</option>
+									<option value="52">52</option>
+									<option value="53">53</option>
+									<option value="54">54</option>
+									<option value="55">55</option>
+									<option value="56">56</option>
+									<option value="57">57</option>
+									<option value="58">58</option>
+									<option value="59">59</option>
+								</select>
+								<label class="input-group-text" for="scheduleTimeMinute">分</label>
+								<select class="form-select text-center" name="scheduleTimeSecond">
+									<option value="-1">未指定</option>
+									<option value="0">0</option>
+									<option value="1">1</option>
+									<option value="2">2</option>
+									<option value="3">3</option>
+									<option value="4">4</option>
+									<option value="5">5</option>
+									<option value="6">6</option>
+									<option value="7">7</option>
+									<option value="8">8</option>
+									<option value="9">9</option>
+									<option value="10">10</option>
+									<option value="11">11</option>
+									<option value="12">12</option>
+									<option value="13">13</option>
+									<option value="14">14</option>
+									<option value="15">15</option>
+									<option value="16">16</option>
+									<option value="17">17</option>
+									<option value="18">18</option>
+									<option value="19">19</option>
+									<option value="20">20</option>
+									<option value="21">21</option>
+									<option value="22">22</option>
+									<option value="23">23</option>
+									<option value="24">24</option>
+									<option value="25">25</option>
+									<option value="26">26</option>
+									<option value="27">27</option>
+									<option value="28">28</option>
+									<option value="29">29</option>
+									<option value="30">30</option>
+									<option value="31">31</option>
+									<option value="32">32</option>
+									<option value="33">33</option>
+									<option value="34">34</option>
+									<option value="35">35</option>
+									<option value="36">36</option>
+									<option value="37">37</option>
+									<option value="38">38</option>
+									<option value="39">39</option>
+									<option value="40">40</option>
+									<option value="41">41</option>
+									<option value="42">42</option>
+									<option value="43">43</option>
+									<option value="44">44</option>
+									<option value="45">45</option>
+									<option value="46">46</option>
+									<option value="47">47</option>
+									<option value="48">48</option>
+									<option value="49">49</option>
+									<option value="50">50</option>
+									<option value="51">51</option>
+									<option value="52">52</option>
+									<option value="53">53</option>
+									<option value="54">54</option>
+									<option value="55">55</option>
+									<option value="56">56</option>
+									<option value="57">57</option>
+									<option value="58">58</option>
+									<option value="59">59</option>
+								</select>
+								<label class="input-group-text" for="scheduleTimeSecond">秒</label>
+							</div>
+						</td>
+					</tr>
+					<tr>
+						<td colspan="2">
+							<div class="input-group">
+								<span class="input-group-text">排程描述</span>
+								<textarea name="scheduleDescription" class="form-control" required></textarea>
+							</div>
+						</td>
+					</tr>
+				</table>
+			</form>
+		</div>
+		<div class="row p-3">
+			<div class="col">
+				<button onClick="save()" type="button" class="btn btn-success float-end">
+					<i class="bi bi-save"></i>
+				</button>
+			</div>
+		</div>
 	</div>
-	
+
 </body>
 
 </html>

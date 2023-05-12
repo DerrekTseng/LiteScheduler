@@ -1,7 +1,10 @@
 package lite.scheduler.core.web;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -9,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import lite.scheduler.core.cmp.SchedulerManipulator;
 import lite.scheduler.core.dto.ResponseMessage;
+import lite.scheduler.core.dto.SaveScheduleDto;
 import lite.scheduler.core.entity.ExecutionHistory;
 import lite.scheduler.core.entity.Job;
 import lite.scheduler.core.entity.JobGroup;
@@ -120,6 +124,43 @@ public class WebService {
 			scheduleRepo.save(schedule);
 			schedulerManipulator.updateSchedule(schedule);
 			return ResponseMessage.success("Update successfully");
+		}
+	}
+
+	public ResponseMessage createScheduleSave(@Valid SaveScheduleDto saveScheduleDto) {
+
+		if (scheduleRepo.existsById(saveScheduleDto.getId())) {
+			return ResponseMessage.error("排程代號已存在");
+		}
+
+		Schedule schedule = new Schedule();
+
+		schedule.setId(saveScheduleDto.getId());
+		schedule.setName(saveScheduleDto.getName());
+		schedule.setDescription(saveScheduleDto.getDescription());
+		schedule.setState(ScheduledState.Disabled);
+		schedule.setExecutionHistories(new ArrayList<>());
+		schedule.setScheduleParameters(new ArrayList<>());
+		schedule.setJobGroups(new ArrayList<>());
+
+		String month = parseCronExp(saveScheduleDto.getMonth());
+		String day = parseCronExp(saveScheduleDto.getDay());
+		String hour = parseCronExp(saveScheduleDto.getHour());
+		String minute = parseCronExp(saveScheduleDto.getMinute());
+		String second = parseCronExp(saveScheduleDto.getSecond());
+		schedule.setCronExp(String.format("%s %s %s ? %s %s *", second, minute, hour, day, month));
+
+		scheduleRepo.save(schedule);
+		schedulerManipulator.addSchedule(schedule);
+		
+		return ResponseMessage.success("新增排程成功");
+	}
+	
+	private String parseCronExp(Integer num) {
+		if (num == null || num == -1) {
+			return  "*";
+		} else {
+			return num.toString();
 		}
 	}
 
