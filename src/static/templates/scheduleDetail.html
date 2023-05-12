@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+<title>Lite Scheduler</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link th:href="@{/bootstrap@5.0.2/bootstrap.min.css}" rel="stylesheet" />
+<script th:src="@{/bootstrap@5.0.2/bootstrap.bundle.min.js}"></script>
+<link th:href="@{/bootstrap-icons@1.9.0/bootstrap-icons.css}"
+	rel="stylesheet" />
+<link th:href="@{/lite-scheduler-lib.css}" rel="stylesheet" />
+<script th:src="@{/lite-scheduler-lib.js}"></script>
+<script th:inline="javascript">
+
+	DocumentUtils.ready(() => {
+		doQuery();
+	});
+
+	function doQuery() {
+		HttpUtils.doPost({
+			url: "qryScheduleDetail",
+			data: {id: /*[[${id}]]*/ "" },
+			success: (data) => {
+
+				ElementUtils.cronTimeSelections({
+					month: {
+						dom: myForm.scheduleTimeMonth,
+						value: data.month
+					},
+					day: {
+						dom: myForm.scheduleTimeDay,
+						value: data.day
+					},
+					hour: {
+						dom: myForm.scheduleTimeHour,
+						value: data.hour
+					},
+					minute: {
+						dom: myForm.scheduleTimeMinute,
+						value: data.minute
+					},
+					second: {
+						dom: myForm.scheduleTimeSecond,
+						value: data.second
+					},
+				});
+
+				myForm.scheduleId.value = data.id;
+				myForm.scheduleName.value = data.name;
+				myForm.scheduleDescription.value = data.description;
+
+				ElementUtils.renderTable({
+					table: document.getElementById("jobGroups"),
+					captions: [{side: "top", text: "群組列表"}],
+					data: data.gridJobGroupRows,
+					thead: [
+						{ html: "順序", clazz: "text-center", style: "width: 100px"},
+						{ html: "群組名稱"},
+						{ html: "啟/停用", clazz: "text-center", style: "width: 100px"},
+						{ html: "執行", clazz: "text-center", style: "width: 60px"},
+						{ html: "刪除", clazz: "text-center", style: "width: 60px"},
+						{ html: "明細", clazz: "text-center", style: "width: 60px"},
+					],
+					tbody: [
+						{ html: "@{sequence}" },
+						{ html: "@{name}" },
+						{ html: "" },
+						{ html: "" },
+						{ html: "" },
+						{ html: "" }
+					],
+					treach: (item, $tr) => {
+
+					}
+				});
+
+			}
+		});
+	}
+
+	function sequenceBtnClick(type, tbody, btnUp, btnDown) {
+		console.log("!!");
+		if (type == 'up') {
+
+		} else if (type == 'down') {
+
+		}
+	}
+
+	function sequenceTrClick(tbody, $tr, btnUp, btnDown) {
+		let $tbody = document.getElementById(tbody);
+		let $btnUp = document.getElementById(btnUp);
+		let $btnDown = document.getElementById(btnDown);
+
+		$btnUp.setAttribute("disabled", true);
+		$btnDown.setAttribute("disabled", true);
+
+		let setActive = !$tr.classList.contains("table-active");
+
+		let $trs = $tbody.querySelectorAll("tr");
+
+		$trs.forEach($item => {
+			$item.classList.remove("table-active");
+		})
+
+		if (setActive) {
+			$tr.classList.add("table-active");
+			let index = Array.prototype.indexOf.call($trs, $tr);
+			if (index > 1) {
+				$btnUp.removeAttribute("disabled");
+			}
+			if (index < $trs.length - 1) {
+				$btnDown.removeAttribute("disabled");
+			}
+		}
+	}
+
+	function save() {
+		return;
+		let validated = myForm.checkValidity();
+		myForm.classList.add('was-validated');
+
+		if (validated) {
+			let formData = {
+				id: myForm.scheduleId.value,
+				name: myForm.scheduleName.value,
+				month: myForm.scheduleTimeMonth.value,
+				day: myForm.scheduleTimeDay.value,
+				hour: myForm.scheduleTimeHour.value,
+				minute: myForm.scheduleTimeMinute.value,
+				second: myForm.scheduleTimeSecond.value,
+				description: myForm.scheduleDescription.value
+			};
+			HttpUtils.doPost({
+				url: "doCreateScheduleSave",
+				data: formData,
+				success: (data) => {
+					if (data.succeeded) {
+						PromptUtils.success(data.message);
+						DialogUtils.closeWindow(window);
+					} else {
+						PromptUtils.error(data.message);
+					}
+				}
+			});
+		}
+	}
+</script>
+</head>
+
+<body>
+
+	<div class="container-fluid p-3">
+
+		<div class="row p-3">
+			<form name="myForm" novalidate>
+				<table class="table table-borderless">
+					<tr>
+						<td>
+							<div class="input-group has-validation">
+								<span class="input-group-text">排程代號</span> 
+								<input name="scheduleId" type="text" class="form-control" required>
+							</div>
+						</td>
+						<td>
+							<div class="input-group has-validation">
+								<span class="input-group-text">排程名稱</span> 
+								<input name="scheduleName" type="text" class="form-control" required>
+							</div>
+						</td>
+					</tr>
+					<tr>
+						<td colspan="2">
+							<div class="input-group">
+								<span class="input-group-text">排程時間</span> 
+								
+								<select	class="form-select text-center" name="scheduleTimeMonth"></select> 
+								<label class="input-group-text" for="scheduleTimeMonth">月</label>
+
+								<select class="form-select text-center" name="scheduleTimeDay"></select>
+								<label class="input-group-text" for="scheduleTimeDay">日</label>
+
+								<select class="form-select text-center" name="scheduleTimeHour"></select> 
+								<label class="input-group-text" for="scheduleTimeHour">時</label>
+
+								<select class="form-select text-center" name="scheduleTimeMinute"></select> 
+								<label class="input-group-text" for="scheduleTimeMinute">分</label>
+
+								<select class="form-select text-center" name="scheduleTimeSecond"></select> 
+								<label class="input-group-text" for="scheduleTimeSecond">秒</label>
+							</div>
+						</td>
+					</tr>
+					<tr>
+						<td colspan="2">
+							<div class="input-group">
+								<span class="input-group-text">排程描述</span>
+								<textarea name="scheduleDescription" class="form-control" required></textarea>
+							</div>
+						</td>
+					</tr>
+					<tr>
+						<td colspan="2">
+							<table id="jobGroups" class="table table-bordered"></table>
+						</td>
+					</tr>
+				</table>
+			</form>
+		</div>
+
+
+		<div class="row p-3">
+			<div class="col">
+				<button onClick="save()" type="button"
+					class="btn btn-success float-end">
+					<i class="bi bi-save"></i>
+				</button>
+			</div>
+		</div>
+	</div>
+
+</body>
+
+</html>

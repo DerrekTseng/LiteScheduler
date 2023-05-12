@@ -1,4 +1,4 @@
-package lite.scheduler.core.dto;
+package lite.scheduler.core.dto.request;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
@@ -6,7 +6,7 @@ import javax.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
-public class SaveScheduleDto {
+public class InsertSchedule {
 
 	@NotBlank
 	String id;

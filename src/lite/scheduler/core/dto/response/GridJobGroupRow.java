@@ -1,4 +1,4 @@
-package lite.scheduler.core.vo;
+package lite.scheduler.core.dto.response;
 
 import lite.scheduler.core.enums.ScheduledState;
 import lombok.Data;

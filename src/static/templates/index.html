@@ -11,9 +11,81 @@
 	<link th:href="@{/lite-scheduler-lib.css}" rel="stylesheet" />
 	<script th:src="@{/lite-scheduler-lib.js}"></script>
 	<script th:inline="javascript">
-		function setScheduleEnable(id, state) {
+
+		DocumentUtils.ready(() => {
+			doQuery();
+		});
+
+		function doQuery() {
 			HttpUtils.doPost({
-				url: "setScheduleEnable",
+				url: "qryGridScheduleRows",
+				success: renderTable
+			});
+		}
+
+		function renderTable(data) {
+			ElementUtils.renderTable({
+				table: document.getElementById("table"),
+				data: data,
+				thead: [
+					{html: "排程代號", style: "width:10%"},
+					{html: "排程名稱"},
+					{html: "上次完成時間", style: "width:114px"},
+					{html: "上次執行結果", style: "width:114px"},
+					{html: "下次執行時間", style: "width:114px"},
+					{html: "啟/停用", clazz: "text-center", style: "width:100px"},
+					{html: "歷程", clazz: "text-center", style: "width:60px"},
+					{html: "執行", clazz: "text-center", style: "width:60px"},
+					{html: "刪除", clazz: "text-center", style: "width:60px"},
+					{html: "明細", clazz: "text-center", style: "width:60px"}
+				],
+				tbody: [
+					{html: "@{id}"},
+					{html: "@{name}"},
+					{html: "@{lastEndDate:date}"},
+					{html: "@{lastExecutedState}"},
+					{html: "@{nextStartDate:date}"},
+					{html: "<select select-state class='form-select'></select>"},
+					{html: ElementUtils.iconButtonHtml("btn-history", "secondary", "book")},
+					{html: ElementUtils.iconButtonHtml("btn-run", "success", "play-fill")},
+					{html: ElementUtils.iconButtonHtml("btn-delete", "danger", "trash")},
+					{html: ElementUtils.iconButtonHtml("btn-detail", "primary", "search")}
+				],
+				treach: (item, $tr) => {
+
+					let $select = $tr.querySelector("[select-state]");
+					
+					ElementUtils.selectOptions($select, [
+						{text: "啟用", value: "Enabled"},
+						{text: "停用", value: "Disabled"}
+					], item.state);
+					$select.addEventListener("change", () => {
+						updateScheduleEnable(item.id, $select.value)
+					});
+
+					$tr.querySelector("[btn-history]").addEventListener("click", () => {
+						openScheduleHistory(item.id);
+					});
+
+					$tr.querySelector("[btn-run]").addEventListener("click", () => {
+						runSchedule(item.id);
+					});
+
+					$tr.querySelector("[btn-delete]").addEventListener("click", () => {
+						deleteSchedule(item.id);
+					});
+
+					$tr.querySelector("[btn-detail]").addEventListener("click", () => {
+						openScheduleDetail(item.id);
+					});
+
+				}
+			});
+		}
+
+		function updateScheduleEnable(id, state) {
+			HttpUtils.doPost({
+				url: "updateScheduleEnable",
 				data: {id, state},
 				success: (data) => {
 					if (data.succeeded) {
@@ -28,23 +100,41 @@
 		function openCreateSchedule() {
 			DialogUtils.window({
 				title: "新增排程",
-				url: "createSchedule",
-				callback: (data) => {
-					if (data?.result) {
-						setTimeout(() => {
-							location.reload();
-						}, 2000);
-					}
-				}
+				url: "openCreateSchedule"
 			});
 		}
 
 		function openGlobleParameter() {
 			DialogUtils.window({
 				title: "全域參數",
-				url: "createSchedule"
+				url: "openGlobleParameter"
 			});
 		}
+
+		function openScheduleHistory(id) {
+			DialogUtils.window({
+				title: "排程歷程",
+				data: {id},
+				url: "openScheduleHistory"
+			});
+		}
+
+		function openScheduleDetail(id) {
+			DialogUtils.window({
+				title: "排程明細",
+				data: {id},
+				url: "openScheduleDetail"
+			});
+		}
+
+		function deleteSchedule(id) {
+			// TODO	
+		}
+
+		function runSchedule(id) {
+			// TODO
+		}
+
 	</script>
 </head>
 
@@ -66,42 +156,7 @@
 
 		<div class="row">
 			<div class="col">
-				<table class="table table-striped table-bordered table-hover">
-					<thead>
-						<tr>
-							<th>排程代號</th>
-							<th>排程名稱</th>
-							<th>上次完成時間</th>
-							<th>上次執行結果</th>
-							<th>下次執行時間</th>
-							<th>啟/停用</th>
-							<th>歷程</th>
-							<th>編輯</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr th:each="item: ${items}">
-							<td th:text="${item.id}" />
-							<td th:text="${item.name}" />
-							<td
-								th:text="${item != null ? #dates.format(item.lastEndDate, 'yyyy/MM/dd HH:mm:ss') : ''}" />
-							<td th:text="${item.lastExecutedState}" />
-							<td
-								th:text="${item != null ? #dates.format(item.nextStartDate, 'yyyy/MM/dd HH:mm:ss') : ''}" />
-							<td>
-								<select th:name="${item.id}" th:onchange="setScheduleEnable(this.name, this.value)">
-									<option
-										th:selected="${item.state == T(lite.scheduler.core.enums.ScheduledState).Disabled}"
-										value="Disabled">停用</option>
-									<option
-										th:selected="${item.state == T(lite.scheduler.core.enums.ScheduledState).Enabled}"
-										value="Enabled">啟用</option>
-								</select>
-							</td>
-							<td />
-							<td />
-						</tr>
-					</tbody>
+				<table id="table" class="table table-striped table-bordered table-hover">
 				</table>
 			</div>
 		</div>

@@ -37,7 +37,7 @@ var DialogUtils = top.DialogUtils || {
 		let e = ElementUtils.createElement(html);
 
 		e.addEventListener('hidden.bs.modal', () => {
-			ElementUtils.removeFromTop(e);
+			DocumentUtils.removeFromTop(e);
 		});
 		e.querySelector("[data-title-close]").addEventListener('click', () => {
 			callback();
@@ -46,9 +46,9 @@ var DialogUtils = top.DialogUtils || {
 			callback();
 		});
 
-		ElementUtils.appendToTop(e);
+		DocumentUtils.appendToTop(e);
 
-		new ElementUtils.bootstrap.Modal(e).show();
+		new DocumentUtils.bootstrap.Modal(e).show();
 	},
 	confirm: (options = {}) => {
 		let title = options.title || "";
@@ -81,7 +81,7 @@ var DialogUtils = top.DialogUtils || {
 		let e = ElementUtils.createElement(html);
 
 		e.addEventListener('hidden.bs.modal', function() {
-			ElementUtils.removeFromTop(e);
+			DocumentUtils.removeFromTop(e);
 		});
 		e.querySelector("[data-title-close]").addEventListener('click', () => {
 			onCancel();
@@ -93,15 +93,17 @@ var DialogUtils = top.DialogUtils || {
 			onConfirm();
 		});
 
-		ElementUtils.appendToTop(e);
+		DocumentUtils.appendToTop(e);
 
-		new ElementUtils.bootstrap.Modal(e).show();
+		new DocumentUtils.bootstrap.Modal(e).show();
 	},
 	window: (options = {}) => {
 		let title = options.title || "";
+		let data = options.data || {};
 		let url = options.url || "";
 		let callback = options.callback || function() { };
 
+		url = url += TextUtils.objectToQuerystring(data);
 		let id = TextUtils.randonString(16);
 
 		let html = `
@@ -123,7 +125,7 @@ var DialogUtils = top.DialogUtils || {
 		let e = ElementUtils.createElement(html);
 
 		e.addEventListener('hidden.bs.modal', function() {
-			ElementUtils.removeFromTop(e);
+			DocumentUtils.removeFromTop(e);
 			dialogWindowCallbacks.delete(id);
 		});
 
@@ -131,9 +133,9 @@ var DialogUtils = top.DialogUtils || {
 			callback();
 		});
 
-		ElementUtils.appendToTop(e);
+		DocumentUtils.appendToTop(e);
 
-		let windowModal = new ElementUtils.bootstrap.Modal(e);
+		let windowModal = new DocumentUtils.bootstrap.Modal(e);
 		windowModal.show();
 
 		dialogWindowCallbacks.set(id, callback);
@@ -141,9 +143,22 @@ var DialogUtils = top.DialogUtils || {
 	},
 	closeWindow(e, data) {
 		let id = e.frameElement.id;
-		let windowModal = ElementUtils.bootstrap.Modal.getInstance(top.document.getElementById("modal-" + id));
+		let windowModal = DocumentUtils.bootstrap.Modal.getInstance(top.document.getElementById("modal-" + id));
 		dialogWindowCallbacks.get(id)(data);
 		windowModal.hide();
+	}
+}
+
+var DocumentUtils = {
+	appendToTop: (e) => {
+		top.document.body.appendChild(e);
+	},
+	removeFromTop: (e) => {
+		top.document.body.removeChild(e);
+	},
+	bootstrap: top.bootstrap,
+	ready: (callback = () => { }) => {
+		window.onload = callback;
 	}
 }
 
@@ -154,15 +169,98 @@ var ElementUtils = top.ElementUtils || {
 		template.innerHTML = html;
 		return template.content.firstChild;
 	},
-	appendToTop: (e) => {
-		top.document.body.appendChild(e);
+	selectOptions: (select, options = [], selectedValue) => {
+		let buffer = []
+		options.forEach(option => {
+			let selected = option.value == selectedValue ? "selected" : "";
+			buffer.push(`<option ${selected} value="${option.value}">${option.text}</option>`);
+		});
+		select.innerHTML = buffer.join("");
 	},
-	removeFromTop: (e) => {
-		top.document.body.removeChild(e);
+	cronTimeSelections: (selections = {}) => {
+		let monthOptions = [];
+		monthOptions.push({ text: "未指定", value: "-1" });
+		for (let i = 1; i < 13; i++) {
+			monthOptions.push({ text: i, value: i });
+		}
+
+		let dayOptions = [];
+		dayOptions.push({ text: "未指定", value: "-1" });
+		for (let i = 1; i < 32; i++) {
+			dayOptions.push({ text: i, value: i });
+		}
+
+		let hourOptions = [];
+		hourOptions.push({ text: "未指定", value: "-1" });
+		for (let i = 0; i < 24; i++) {
+			hourOptions.push({ text: i, value: i });
+		}
+
+		let minuteOptions = [];
+		minuteOptions.push({ text: "未指定", value: "-1" });
+		for (let i = 0; i < 60; i++) {
+			minuteOptions.push({ text: i, value: i });
+		}
+
+		let secondOptions = [];
+		secondOptions.push({ text: "未指定", value: "-1" });
+		for (let i = 0; i < 60; i++) {
+			secondOptions.push({ text: i, value: i });
+		}
+
+		ElementUtils.selectOptions(selections.month.dom, monthOptions, selections.month.value);
+		ElementUtils.selectOptions(selections.day.dom, monthOptions, selections.day.value);
+		ElementUtils.selectOptions(selections.hour.dom, monthOptions, selections.hour.value);
+		ElementUtils.selectOptions(selections.minute.dom, monthOptions, selections.minute.value);
+		ElementUtils.selectOptions(selections.second.dom, monthOptions, selections.second.value);
 	},
-	bootstrap: top.bootstrap,
-	ready: (callback = () => { }) => {
-		window.onload = callback;
+	renderTable: (options = {}) => {
+		let $table = options.table || ElementUtils.createElement("<table></table>");
+		let captions = options.captions || [];
+		let data = options.data || [];
+		let thead = options.thead || [];
+		let tbody = options.tbody || [];
+		let treach = options.treach || function() { };
+
+		let captionsBuffer = []
+		captions.forEach(item => {
+			captionsBuffer.push(`<caption style="caption-side: ${item.side}">${item.text}</caption>`);
+		});
+		$table.innerHTML = captionsBuffer.join("");
+
+		let theadBuffer = [];
+		theadBuffer.push("<thead>");
+		theadBuffer.push("<tr>");
+		thead.forEach(item => {
+			let _clazz = item.clazz ? `class="${item.clazz}"` : "";
+			let _style = item.style ? `style="${item.style}"` : "";
+			theadBuffer.push(`<th ${_clazz} ${_style}>${item.html}</th>`);
+		});
+		theadBuffer.push("</tr>");
+		theadBuffer.push("</thead>");
+		$table.insertAdjacentHTML('beforeend', theadBuffer.join(""));
+
+		let $tbody = ElementUtils.createElement("<tbody></tbody>");
+		data.forEach(item => {
+			let $tr = ElementUtils.createElement("<tr></tr>");
+			let tdBuffer = [];
+			tbody.forEach((_item) => {
+				let _clazz = _item.class ? `class="${_item.clazz}"` : "";
+				let _style = _item.style ? `style="${_item.style}"` : "";
+				let html = `<td ${_clazz} ${_style}>${_item.html}</td>`;
+				tdBuffer.push(TextUtils.tranPattern(html, item));
+			});
+			$tr.innerHTML = tdBuffer.join("");
+			treach(item, $tr);
+			$tbody.appendChild($tr);
+		});
+		$table.appendChild($tbody);
+	},
+	iconButtonHtml: (attrs, type, icon) => {
+		return `<button ${attrs} type="button" class="btn btn-${type}"><i class="bi bi-${icon}"></i></button>`;
+	},
+	textButtonHtml: (attrs, type, text) => {
+		return `<button ${attrs} type="button" class="btn btn-${type}">${text}</button>`;
 	}
 }
 
@@ -189,14 +287,14 @@ var PromptUtils = top.PromptUtils || {
 
 		let e = ElementUtils.createElement(html);
 
-		ElementUtils.appendToTop(e);
+		DocumentUtils.appendToTop(e);
 
 		let timeout = TimeoutUtils.setTimeout(function() {
-			ElementUtils.removeFromTop(e);
+			DocumentUtils.removeFromTop(e);
 		}, 3000);
 
 		e.addEventListener('click', () => {
-			ElementUtils.removeFromTop(e);
+			DocumentUtils.removeFromTop(e);
 			TimeoutUtils.clearTimeout(timeout);
 		});
 	}
@@ -217,10 +315,51 @@ var TextUtils = top.TextUtils || {
 		Object.keys(item).forEach(function(k) {
 			let key = "@{" + k + "}";
 			while (text.includes(key)) {
-				text = text.replace(key, item[k]);
+				if (item[k] || item[k] == 0) {
+					text = text.replace(key, item[k]);
+				} else {
+					text = text.replace(key, "");
+				}
+			}
+
+			key = "@{" + k + ":date}";
+			while (text.includes(key)) {
+				if (item[k]) {
+					let date = new Date(item[k]);
+					let formattedDate = `${date.getFullYear()}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getDate().toString().padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}:${date.getSeconds().toString().padStart(2, '0')}`;
+					text = text.replace(key, formattedDate);
+				} else {
+					text = text.replace(key, "");
+				}
 			}
 		});
 		return text;
+	},
+	objectToQuerystring(obj = {}) {
+		return Object.keys(obj).filter((key) => obj[key] != undefined && obj[key] != '').reduce((str, key, i) => {
+			let delimiter, val;
+			delimiter = (i === 0) ? '?' : '&';
+			if (Array.isArray(obj[key])) {
+				key = encodeURIComponent(key);
+				let arrayVar = obj[key].reduce((str, item) => {
+					if (typeof item == "object") {
+						val = encodeURIComponent(JSON.stringify(item));
+					} else {
+						val = encodeURIComponent(item);
+					}
+					return [str, key, '=', val, '&'].join('');
+				}, '');
+				return [str, delimiter, arrayVar.trimRightString('&')].join('');
+			} else {
+				key = encodeURIComponent(key);
+				if (typeof obj[key] == "object") {
+					val = encodeURIComponent(JSON.stringify(obj[key]));
+				} else {
+					val = encodeURIComponent(obj[key]);
+				}
+				return [str, delimiter, key, '=', val].join('');
+			}
+		}, '');
 	}
 }
 

@@ -1,4 +1,4 @@
-package lite.scheduler.core.vo;
+package lite.scheduler.core.dto.response;
 
 import java.util.List;
 
@@ -14,10 +14,18 @@ public class ScheduleDetail {
 
 	String description;
 
-	String cronExp;
+	Integer month;
+
+	Integer day;
+
+	Integer hour;
+
+	Integer minute;
+
+	Integer second;
 
 	List<ScheduleParameter> scheduleParameters;
-	
+
 	List<GridJobGroupRow> gridJobGroupRows;
-	
+
 }

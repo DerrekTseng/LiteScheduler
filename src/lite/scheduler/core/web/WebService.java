@@ -12,7 +12,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import lite.scheduler.core.cmp.SchedulerManipulator;
 import lite.scheduler.core.dto.ResponseMessage;
-import lite.scheduler.core.dto.SaveScheduleDto;
+import lite.scheduler.core.dto.request.InsertSchedule;
+import lite.scheduler.core.dto.response.GridJobGroupRow;
+import lite.scheduler.core.dto.response.GridJobRow;
+import lite.scheduler.core.dto.response.GridScheduleRow;
+import lite.scheduler.core.dto.response.JobDetail;
+import lite.scheduler.core.dto.response.JobGroupDetail;
+import lite.scheduler.core.dto.response.ScheduleDetail;
 import lite.scheduler.core.entity.ExecutionHistory;
 import lite.scheduler.core.entity.Job;
 import lite.scheduler.core.entity.JobGroup;
@@ -21,12 +27,6 @@ import lite.scheduler.core.enums.ScheduledState;
 import lite.scheduler.core.repo.JobGroupRepo;
 import lite.scheduler.core.repo.JobRepo;
 import lite.scheduler.core.repo.ScheduleRepo;
-import lite.scheduler.core.vo.GridJobGroupRow;
-import lite.scheduler.core.vo.GridJobRow;
-import lite.scheduler.core.vo.GridScheduleRow;
-import lite.scheduler.core.vo.JobDetail;
-import lite.scheduler.core.vo.JobGroupDetail;
-import lite.scheduler.core.vo.ScheduleDetail;
 
 @Service
 public class WebService {
@@ -67,7 +67,14 @@ public class WebService {
 		scheduleDetail.setId(schedule.getId());
 		scheduleDetail.setName(schedule.getName());
 		scheduleDetail.setDescription(schedule.getDescription());
-		scheduleDetail.setCronExp(schedule.getCronExp());
+
+		String cronExps[] = schedule.getCronExp().split(" ");
+		scheduleDetail.setMonth(parseCronExp(cronExps[5]));
+		scheduleDetail.setDay(parseCronExp(cronExps[4]));
+		scheduleDetail.setHour(parseCronExp(cronExps[2]));
+		scheduleDetail.setMinute(parseCronExp(cronExps[1]));
+		scheduleDetail.setSecond(parseCronExp(cronExps[0]));
+
 		scheduleDetail.setScheduleParameters(schedule.getScheduleParameters());
 
 		scheduleDetail.setGridJobGroupRows(schedule.getJobGroups().stream().map(jobGroup -> {
@@ -127,40 +134,48 @@ public class WebService {
 		}
 	}
 
-	public ResponseMessage createScheduleSave(@Valid SaveScheduleDto saveScheduleDto) {
+	public ResponseMessage doCreateScheduleSave(@Valid InsertSchedule insertSchedule) {
 
-		if (scheduleRepo.existsById(saveScheduleDto.getId())) {
+		if (scheduleRepo.existsById(insertSchedule.getId())) {
 			return ResponseMessage.error("排程代號已存在");
 		}
 
 		Schedule schedule = new Schedule();
 
-		schedule.setId(saveScheduleDto.getId());
-		schedule.setName(saveScheduleDto.getName());
-		schedule.setDescription(saveScheduleDto.getDescription());
+		schedule.setId(insertSchedule.getId());
+		schedule.setName(insertSchedule.getName());
+		schedule.setDescription(insertSchedule.getDescription());
 		schedule.setState(ScheduledState.Disabled);
 		schedule.setExecutionHistories(new ArrayList<>());
 		schedule.setScheduleParameters(new ArrayList<>());
 		schedule.setJobGroups(new ArrayList<>());
 
-		String month = parseCronExp(saveScheduleDto.getMonth());
-		String day = parseCronExp(saveScheduleDto.getDay());
-		String hour = parseCronExp(saveScheduleDto.getHour());
-		String minute = parseCronExp(saveScheduleDto.getMinute());
-		String second = parseCronExp(saveScheduleDto.getSecond());
+		String month = parseCronExp(insertSchedule.getMonth());
+		String day = parseCronExp(insertSchedule.getDay());
+		String hour = parseCronExp(insertSchedule.getHour());
+		String minute = parseCronExp(insertSchedule.getMinute());
+		String second = parseCronExp(insertSchedule.getSecond());
 		schedule.setCronExp(String.format("%s %s %s ? %s %s *", second, minute, hour, day, month));
 
 		scheduleRepo.save(schedule);
 		schedulerManipulator.addSchedule(schedule);
-		
+
 		return ResponseMessage.success("新增排程成功");
 	}
-	
+
 	private String parseCronExp(Integer num) {
 		if (num == null || num == -1) {
-			return  "*";
+			return "*";
 		} else {
 			return num.toString();
+		}
+	}
+
+	private Integer parseCronExp(String exp) {
+		if (exp == null || exp.equals("*")) {
+			return -1;
+		} else {
+			return Integer.valueOf(exp);
 		}
 	}
 
