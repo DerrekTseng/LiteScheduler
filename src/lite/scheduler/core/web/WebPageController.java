@@ -26,9 +26,9 @@ public class WebPageController {
 		return view;
 	}
 
-	@GetMapping("openCreateSchedule")
-	public ModelAndView openCreateSchedule() {
-		ModelAndView view = new ModelAndView("createSchedule");
+	@GetMapping("openScheduleCreate")
+	public ModelAndView openScheduleCreate() {
+		ModelAndView view = new ModelAndView("scheduleCreate");
 		return view;
 	}
 
@@ -36,6 +36,20 @@ public class WebPageController {
 	public ModelAndView openScheduleDetail(@RequestParam(required = true) String id) {
 		ModelAndView view = new ModelAndView("scheduleDetail");
 		view.addObject("id", id);
+		return view;
+	}
+
+	@GetMapping("openScheduleDetailEdit")
+	public ModelAndView openScheduleDetailEdit(@RequestParam(required = true) String id) {
+		ModelAndView view = new ModelAndView("scheduleDetailEdit");
+		view.addObject("id", id);
+		return view;
+	}
+
+	@GetMapping("cronExpGenerator")
+	public ModelAndView cronExpGenerator(@RequestParam(required = true) String cronExp) {
+		ModelAndView view = new ModelAndView("cronExpGenerator");
+		view.addObject("cronExp", cronExp);
 		return view;
 	}
 

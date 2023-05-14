@@ -160,8 +160,20 @@ var DocumentUtils = {
 	ready: (callback = () => { }) => {
 		window.onload = callback;
 	},
-	isFunction(functionToCheck) {
+	isFunction: (functionToCheck) => {
 		return functionToCheck && {}.toString.call(functionToCheck) === '[object Function]';
+	},
+	isNode: (o) => {
+		return (
+			typeof Node === "object" ? o instanceof Node :
+				o && typeof o === "object" && typeof o.nodeType === "number" && typeof o.nodeName === "string"
+		);
+	},
+	isElement: (o) => {
+		return (
+			typeof HTMLElement === "object" ? o instanceof HTMLElement : //DOM2
+				o && typeof o === "object" && o !== null && o.nodeType === 1 && typeof o.nodeName === "string"
+		);
 	}
 }
 
@@ -246,52 +258,120 @@ var ElementUtils = top.ElementUtils || {
 		let $tbody = ElementUtils.createElement("<tbody></tbody>");
 		data.forEach(item => {
 			let $tr = ElementUtils.createElement("<tr></tr>");
-			let tdBuffer = [];
 			tbody.forEach((_item) => {
 				let _clazz = _item.clazz ? `class="${_item.clazz}"` : "";
 				let _style = _item.style ? `style="${_item.style}"` : "";
-
-				let _html;
-
+				let $td = ElementUtils.createElement(TextUtils.tranPattern(`<td ${_clazz} ${_style}></td>`, item));
 				if (_item.html) {
-					_html = _item.html;
+					$td.innerHTML = TextUtils.tranPattern(_item.html, item);
 				} else if (DocumentUtils.isFunction(_item.parse)) {
-					_html = _item.parse(item);
-				} else {
-					_html = "";
+					let parsed = _item.parse(item);
+					if (DocumentUtils.isElement(parsed) || DocumentUtils.isNode(parsed)) {
+						$td.appendChild(parsed);
+					} else {
+						$td.innerHTML = parsed;
+					}
 				}
-
-				let html = `<td ${_clazz} ${_style}>${_html}</td>`;
-				tdBuffer.push(TextUtils.tranPattern(html, item));
+				$tr.appendChild($td);
 			});
-			$tr.innerHTML = tdBuffer.join("");
 			treach(item, $tr);
 			$tbody.appendChild($tr);
 		});
 		$table.appendChild($tbody);
 	},
-	iconButtonHtml: (attrs, type, icon) => {
-		return `<button ${attrs} type="button" class="btn btn-${type}"><i class="bi bi-${icon}"></i></button>`;
+	iconButtonHtml: (options = {}) => {
+		let attrs = options.attrs ? options.attrs : "";
+		let color = options.color ? `btn-${options.color}` : "";
+		let size = options.size ? `btn-${options.size}` : "";
+		let icon = options.icon ? `bi bi-${options.icon}` : "";
+		let click = options.click ? `onclick="${options.click}"` : "";
+		let clazz = options.clazz ? options.clazz : "";
+
+		return `
+			<button ${attrs} type="button" class="btn ${color} ${size} ${clazz}" ${click}>
+				<i class="${icon}"></i>
+			</button>
+		`;
 	},
-	textButtonHtml: (attrs, type, text) => {
-		return `<button ${attrs} type="button" class="btn btn-${type}">${text}</button>`;
+	textButtonHtml: (options = {}) => {
+		let attrs = options.attrs ? options.attrs : "";
+		let color = options.color ? `btn-${options.color}` : "";
+		let size = options.size ? `btn-${options.size}` : "";
+		let text = options.text ? options.text : "";
+		let click = options.click ? `onclick="${options.click}"` : "";
+		let clazz = options.clazz ? options.clazz : "";
+
+		return `
+			<button ${attrs} type="button" class="btn ${color} ${size} ${clazz}" ${click}>
+				${text}
+			</button>
+		`;
+	},
+	cronExpressionComponent: (options = {}) => {
+		let div = options.div || ElementUtils.createElement("<div></div>");
+		let value = options.value || "0 0 0 ? * * * ";
+		let id = options.id || "";
+		let name = options.name || "";
+		let attrs = options.attrs || "";
+
+		let _id = id ? `id="${id}"` : "";
+		let _name = name ? `name="${name}"` : "";
+		let _attrs = attrs ? attrs : "";
+
+		let $input = ElementUtils.createElement(`
+			<input cron-exp-input ${_attrs} type="text" class="form-control text-center" ${_id} ${_name} readonly>
+		`);
+
+		let $button = ElementUtils.createElement(`
+			<button cron-exp-btn class="btn btn-outline-secondary" type="button">
+			  	<i class="bi bi-calendar3"></i>
+			  </button>
+		`);
+
+		$input.value = value;
+
+		$button.addEventListener("click", () => {
+			DialogUtils.window({
+				title: "Cron expression generator",
+				url: "cronExpGenerator",
+				data: { cronExp: $input.value },
+				callback: (retVal) => {
+					if (retVal?.cronExp) {
+						$input.value = retVal.cronExp;
+					}
+				}
+			});
+		});
+
+		if (div.querySelectorAll("[cron-exp-input]").length) {
+			div.querySelector("[cron-exp-input]").replaceWith($input);
+		} else {
+			div.appendChild($input);
+		}
+
+		if (div.querySelectorAll("[cron-exp-btn]").length) {
+			div.querySelector("[cron-exp-btn]").replaceWith($button);
+		} else {
+			div.appendChild($button);
+		}
+
 	}
 }
 
 var PromptUtils = top.PromptUtils || {
 	info: (msg) => {
-		PromptUtils.prompt("alert-info", msg);
+		PromptUtils.prompt("alert-info", msg, 1000);
 	},
 	success: (msg) => {
-		PromptUtils.prompt("alert-success", msg);
+		PromptUtils.prompt("alert-success", msg, 1000);
 	},
 	warning: (msg) => {
-		PromptUtils.prompt("alert-warning", msg);
+		PromptUtils.prompt("alert-warning", msg, 3000);
 	},
 	error: (msg) => {
-		PromptUtils.prompt("alert-danger", msg);
+		PromptUtils.prompt("alert-danger", msg, 5000);
 	},
-	prompt: (alertClass = "", msg = "") => {
+	prompt: (alertClass = "", msg = "", interval = 3000) => {
 
 		let html = ` 
 			<div class="alert ${alertClass} prompt" role="alert" style="z-index: 2080">
@@ -305,7 +385,7 @@ var PromptUtils = top.PromptUtils || {
 
 		let timeout = TimeoutUtils.setTimeout(function() {
 			DocumentUtils.removeFromTop(e);
-		}, 3000);
+		}, interval);
 
 		e.addEventListener('click', () => {
 			DocumentUtils.removeFromTop(e);
@@ -324,7 +404,7 @@ var TextUtils = top.TextUtils || {
 		}
 		return result.join('');
 	},
-	tranPattern(text, item) {
+	tranPattern: (text, item) => {
 		let key;
 		Object.keys(item).forEach(function(k) {
 			key = "@{" + k + "}";
@@ -348,7 +428,7 @@ var TextUtils = top.TextUtils || {
 		});
 		return text;
 	},
-	objectToQuerystring(obj = {}) {
+	objectToQuerystring: (obj = {}) => {
 		return Object.keys(obj).filter((key) => obj[key] != undefined && obj[key] != '').reduce((str, key, i) => {
 			let delimiter, val;
 			delimiter = (i === 0) ? '?' : '&';
@@ -373,6 +453,14 @@ var TextUtils = top.TextUtils || {
 				return [str, delimiter, key, '=', val].join('');
 			}
 		}, '');
+	},
+	fillHead: (text = " ", appender = " ", length = 0) => {
+		let _text = "" + text;
+		let _appender = "" + appender;
+		while (_text.length < length) {
+			_text = _appender + _text;
+		}
+		return _text;
 	}
 }
 
@@ -381,6 +469,7 @@ var HttpUtils = top.HttpUtils || {
 		let url = options.url || "";
 		let data = options.data || {};
 		let success = options.success || function() { };
+
 		let error = options.error || function() { };
 
 		fetch(url, {
@@ -393,6 +482,11 @@ var HttpUtils = top.HttpUtils || {
 		}).then((response) => {
 			if (response.ok) {
 				response.json().then((responseData) => {
+					if (responseData?.succeeded == true) {
+						PromptUtils.success(responseData?.message);
+					} else if (responseData?.succeeded == false) {
+						PromptUtils.error(responseData?.message);
+					}
 					success(responseData, response);
 				});
 			} else {
@@ -405,8 +499,4 @@ var HttpUtils = top.HttpUtils || {
 			error(response);
 		});
 	}
-}
-
-var ValidateUtils = {
-
 }

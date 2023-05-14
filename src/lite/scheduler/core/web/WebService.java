@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import lite.scheduler.core.cmp.SchedulerManipulator;
 import lite.scheduler.core.dto.ResponseMessage;
-import lite.scheduler.core.dto.request.InsertSchedule;
+import lite.scheduler.core.dto.request.InsertUpdateSchedule;
 import lite.scheduler.core.dto.response.GridJobGroupRow;
 import lite.scheduler.core.dto.response.GridJobRow;
 import lite.scheduler.core.dto.response.GridScheduleRow;
@@ -23,6 +23,7 @@ import lite.scheduler.core.entity.ExecutionHistory;
 import lite.scheduler.core.entity.Job;
 import lite.scheduler.core.entity.JobGroup;
 import lite.scheduler.core.entity.Schedule;
+import lite.scheduler.core.enums.ExecutionStatus;
 import lite.scheduler.core.enums.ScheduledState;
 import lite.scheduler.core.repo.JobGroupRepo;
 import lite.scheduler.core.repo.JobRepo;
@@ -67,14 +68,7 @@ public class WebService {
 		scheduleDetail.setId(schedule.getId());
 		scheduleDetail.setName(schedule.getName());
 		scheduleDetail.setDescription(schedule.getDescription());
-
-		String cronExps[] = schedule.getCronExp().split(" ");
-		scheduleDetail.setMonth(parseCronExp(cronExps[5]));
-		scheduleDetail.setDay(parseCronExp(cronExps[4]));
-		scheduleDetail.setHour(parseCronExp(cronExps[2]));
-		scheduleDetail.setMinute(parseCronExp(cronExps[1]));
-		scheduleDetail.setSecond(parseCronExp(cronExps[0]));
-
+		scheduleDetail.setCronExp(schedule.getCronExp());
 		scheduleDetail.setScheduleParameters(schedule.getScheduleParameters());
 
 		scheduleDetail.setGridJobGroupRows(schedule.getJobGroups().stream().map(jobGroup -> {
@@ -125,37 +119,32 @@ public class WebService {
 	public ResponseMessage setScheduleEnable(String id, ScheduledState state) {
 		Schedule schedule = scheduleRepo.findById(id).orElse(null);
 		if (schedule == null) {
-			return ResponseMessage.error("id not found");
+			return ResponseMessage.error("排程不存在");
 		} else {
 			schedule.setState(state);
 			scheduleRepo.save(schedule);
 			schedulerManipulator.updateSchedule(schedule);
-			return ResponseMessage.success("Update successfully");
+			return ResponseMessage.success("更新成功");
 		}
 	}
 
-	public ResponseMessage doCreateScheduleSave(@Valid InsertSchedule insertSchedule) {
+	public ResponseMessage doCreateSchedule(@Valid InsertUpdateSchedule insertUpdateSchedule) {
 
-		if (scheduleRepo.existsById(insertSchedule.getId())) {
+		if (scheduleRepo.existsById(insertUpdateSchedule.getId())) {
 			return ResponseMessage.error("排程代號已存在");
 		}
 
 		Schedule schedule = new Schedule();
 
-		schedule.setId(insertSchedule.getId());
-		schedule.setName(insertSchedule.getName());
-		schedule.setDescription(insertSchedule.getDescription());
+		schedule.setId(insertUpdateSchedule.getId());
+		schedule.setName(insertUpdateSchedule.getName());
+		schedule.setDescription(insertUpdateSchedule.getDescription());
 		schedule.setState(ScheduledState.Disabled);
 		schedule.setExecutionHistories(new ArrayList<>());
 		schedule.setScheduleParameters(new ArrayList<>());
 		schedule.setJobGroups(new ArrayList<>());
 
-		String month = parseCronExp(insertSchedule.getMonth());
-		String day = parseCronExp(insertSchedule.getDay());
-		String hour = parseCronExp(insertSchedule.getHour());
-		String minute = parseCronExp(insertSchedule.getMinute());
-		String second = parseCronExp(insertSchedule.getSecond());
-		schedule.setCronExp(String.format("%s %s %s ? %s %s *", second, minute, hour, day, month));
+		schedule.setCronExp(insertUpdateSchedule.getCronExp());
 
 		scheduleRepo.save(schedule);
 		schedulerManipulator.addSchedule(schedule);
@@ -163,19 +152,91 @@ public class WebService {
 		return ResponseMessage.success("新增排程成功");
 	}
 
-	private String parseCronExp(Integer num) {
-		if (num == null || num == -1) {
-			return "*";
+	public ResponseMessage doUpdateSchedule(@Valid InsertUpdateSchedule insertUpdateSchedule) {
+
+		Schedule schedule = scheduleRepo.findById(insertUpdateSchedule.getId()).orElse(null);
+
+		if (schedule == null) {
+			return ResponseMessage.error("排程代號不存在");
+		}
+
+		schedule.setName(insertUpdateSchedule.getName());
+		schedule.setDescription(insertUpdateSchedule.getDescription());
+		schedule.setCronExp(insertUpdateSchedule.getCronExp());
+		
+		scheduleRepo.save(schedule);
+		schedulerManipulator.updateSchedule(schedule);
+		
+		return ResponseMessage.success("排程更新成功");
+	}
+	
+	public ResponseMessage deleteSchedule(String id) {
+		Schedule schedule = scheduleRepo.findById(id).orElse(null);
+
+		if (schedule == null) {
+			return ResponseMessage.error("排程不存在");
+		}
+
+		ExecutionHistory lastHistory = schedule.getExecutionHistories().stream().findFirst().orElse(null);
+
+		if (lastHistory == null || lastHistory.getExecutionStatus() != ExecutionStatus.Running) {
+			schedulerManipulator.removeSchedule(schedule);
+			scheduleRepo.delete(schedule);
+			return ResponseMessage.success("刪除成功");
 		} else {
-			return num.toString();
+			return ResponseMessage.error("無法刪除正在執行中的排成");
 		}
 	}
 
-	private Integer parseCronExp(String exp) {
-		if (exp == null || exp.equals("*")) {
-			return -1;
+	public ResponseMessage executeSchedule(String id) {
+		Schedule schedule = scheduleRepo.findById(id).orElse(null);
+
+		if (schedule == null) {
+			return ResponseMessage.error("排程不存在");
+		}
+
+		ExecutionHistory lastHistory = schedule.getExecutionHistories().stream().findFirst().orElse(null);
+
+		if (lastHistory == null || lastHistory.getExecutionStatus() != ExecutionStatus.Running) {
+			schedulerManipulator.fire(schedule);
+			return ResponseMessage.success("請求執行成功");
 		} else {
-			return Integer.valueOf(exp);
+			return ResponseMessage.error("該排程已經在執行中");
+		}
+	}
+
+	public ResponseMessage executeJobGroup(String id) {
+		JobGroup jobGroup = jobGroupRepo.findById(Integer.parseInt(id)).orElse(null);
+
+		if (jobGroup == null) {
+			return ResponseMessage.error("工作群組不存在");
+		}
+
+		Schedule schedule = jobGroup.getSchedule();
+		ExecutionHistory lastHistory = schedule.getExecutionHistories().stream().findFirst().orElse(null);
+		if (lastHistory == null || lastHistory.getExecutionStatus() != ExecutionStatus.Running) {
+			schedulerManipulator.fire(jobGroup);
+			return ResponseMessage.success("請求執行成功");
+		} else {
+			return ResponseMessage.error("該排程已經在執行中");
+		}
+	}
+
+	public ResponseMessage executeJob(String id) {
+		Job job = jobRepo.findById(Integer.parseInt(id)).orElse(null);
+
+		if (job == null) {
+			return ResponseMessage.error("工作不存在");
+		}
+
+		Schedule schedule = job.getJobGroup().getSchedule();
+
+		ExecutionHistory lastHistory = schedule.getExecutionHistories().stream().findFirst().orElse(null);
+		if (lastHistory == null || lastHistory.getExecutionStatus() != ExecutionStatus.Running) {
+			schedulerManipulator.fire(job);
+			return ResponseMessage.success("請求執行成功");
+		} else {
+			return ResponseMessage.error("該排程已經在執行中");
 		}
 	}
 

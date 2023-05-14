@@ -14,27 +14,10 @@
 
 		DocumentUtils.ready(() => {
 
-			ElementUtils.cronTimeSelections({
-				month: {
-					dom: myForm.scheduleTimeMonth,
-					value: -1
-				},
-				day: {
-					dom: myForm.scheduleTimeDay,
-					value: -1
-				},
-				hour: {
-					dom: myForm.scheduleTimeHour,
-					value: -1
-				},
-				minute: {
-					dom: myForm.scheduleTimeMinute,
-					value: -1
-				},
-				second: {
-					dom: myForm.scheduleTimeSecond,
-					value: -1
-				},
+			ElementUtils.cronExpressionComponent({
+				div: document.getElementById("cronExp"),
+				name: "cronExp",
+				value: "* * * ? * * *"
 			});
 			
 		});
@@ -48,11 +31,7 @@
 				let formData = {
 					id: myForm.scheduleId.value,
 					name: myForm.scheduleName.value,
-					month: myForm.scheduleTimeMonth.value,
-					day: myForm.scheduleTimeDay.value,
-					hour: myForm.scheduleTimeHour.value,
-					minute: myForm.scheduleTimeMinute.value,
-					second: myForm.scheduleTimeSecond.value,
+					cronExp: myForm.cronExp.value,
 					description: myForm.scheduleDescription.value
 				};
 				HttpUtils.doPost({
@@ -101,22 +80,8 @@
 					</tr>
 					<tr>
 						<td colspan="2">
-							<div class="input-group">
+							<div class="input-group" id="cronExp">
 								<span class="input-group-text">排程時間</span>
-								<select class="form-select text-center" name="scheduleTimeMonth"></select>
-								<label class="input-group-text" for="scheduleTimeMonth">月</label>
-
-								<select class="form-select text-center"name="scheduleTimeDay"></select>
-								<label class="input-group-text" for="scheduleTimeDay">日</label>
-
-								<select class="form-select text-center" name="scheduleTimeHour"></select>
-								<label class="input-group-text" for="scheduleTimeHour">時</label>
-
-								<select class="form-select text-center" name="scheduleTimeMinute"></select>
-								<label class="input-group-text" for="scheduleTimeMinute">分</label>
-
-								<select class="form-select text-center" name="scheduleTimeSecond"></select>
-								<label class="input-group-text" for="scheduleTimeSecond">秒</label>
 							</div>
 						</td>
 					</tr>

@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<title>Lite Scheduler</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link th:href="@{/bootstrap@5.0.2/bootstrap.min.css}" rel="stylesheet" />
+	<script th:src="@{/bootstrap@5.0.2/bootstrap.bundle.min.js}"></script>
+	<link th:href="@{/bootstrap-icons@1.9.0/bootstrap-icons.css}" rel="stylesheet" />
+	<link th:href="@{/lite-scheduler-lib.css}" rel="stylesheet" />
+	<script th:src="@{/lite-scheduler-lib.js}"></script>
+
+	<script th:inline="javascript">
+		const cronExp = /*[[${cronExp}]]*/ "";
+
+		const options1to60 = createNumberArray(1, 60, false);
+		const options00to59 = createNumberArray(0, 59, true);
+		const options00to23 = createNumberArray(0, 23, true);
+		const options1to7 = createNumberArray(1, 7, false);
+		const options1to31 = createNumberArray(1, 31, false);
+		const options01to31 = createNumberArray(1, 31, true);
+		const options1to12 = createNumberArray(1, 12, false);
+
+		const optionsDayOfWeek = [
+			{text: "Sunday", value: "1"}, {text: "Monday", value: "2"},
+			{text: "Tuesday", value: "3"}, {text: "Wednesday", value: "4"},
+			{text: "Thursday", value: "5"}, {text: "Friday", value: "6"},
+			{text: "Saturday", value: "7"}
+		]
+
+		const optionsDayOfMonth = [
+			{text: "1st", value: "1"}, {text: "2nd", value: "2"}, {text: "3rd", value: "3"}, {text: "4th", value: "4"}, {text: "5th", value: "5"},
+			{text: "6th", value: "6"}, {text: "7th", value: "7"}, {text: "8th", value: "8"}, {text: "9th", value: "9"}, {text: "10th", value: "10"},
+			{text: "11th", value: "11"}, {text: "12th", value: "12"}, {text: "13th", value: "13"}, {text: "14th", value: "14"}, {text: "15th", value: "15"},
+			{text: "16th", value: "16"}, {text: "17th", value: "17"}, {text: "18th", value: "18"}, {text: "19th", value: "19"}, {text: "20th", value: "20"},
+			{text: "21st", value: "21"}, {text: "22nd", value: "22"}, {text: "23rd", value: "23"}, {text: "24th", value: "24"}, {text: "25th", value: "25"},
+			{text: "26th", value: "26"}, {text: "27th", value: "27"}, {text: "28th", value: "28"}, {text: "29th", value: "29"}, {text: "30th", value: "30"},
+			{text: "31st", value: "37"}
+		]
+
+		const checkboxesDayOfWeek = [
+			{text: "Sunday", value: "SUN"}, {text: "Monday", value: "MON"},
+			{text: "Tuesday", value: "TUE"}, {text: "Wednesday", value: "WED"},
+			{text: "Thursday", value: "THU"}, {text: "Friday", value: "FRI"},
+			{text: "Saturday", value: "SAT"}
+		]
+
+		const optionsWeekOfMonth = [
+			{text: "1st", value: "1"}, {text: "2nd", value: "2"}, {text: "3rd", value: "3"}, {text: "4th", value: "4"}, {text: "5th", value: "5"}
+		]
+
+		const checkboxesMonth = [
+			{text: "JAN", value: "JAN"}, {text: "FEB", value: "FEB"}, {text: "MAR", value: "MAR"},
+			{text: "APR", value: "APR"}, {text: "MAY", value: "MAY"}, {text: "JUN", value: "JUN"},
+			{text: "JUL", value: "JUL"}, {text: "AUG", value: "AUG"}, {text: "SEP", value: "SEP"},
+			{text: "OCT", value: "OCT"}, {text: "NOV", value: "NOV"}, {text: "DEC", value: "DEC"}
+		]
+
+		const optionsMonth = [
+			{text: "January", value: "1"}, {text: "February", value: "2"}, {text: "March", value: "3"},
+			{text: "April", value: "4"}, {text: "May", value: "5"}, {text: "June", value: "6"},
+			{text: "July", value: "7"}, {text: "August", value: "8"}, {text: "September", value: "9"},
+			{text: "October", value: "10"}, {text: "November", value: "11"}, {text: "December", value: "12"}
+		]
+
+		const currentYear = new Date().getFullYear();
+		const optionsYearAmount = []
+		const optionsYear = []
+
+		for (let i = currentYear; i <= currentYear + 79; i++) {
+			optionsYearAmount.push({text: (i - currentYear) + 1, value: (i - currentYear) + 1});
+			optionsYear.push({text: i, value: i});
+		}
+
+		function computeSeconds() {
+			let seconds = '';
+			if (document.querySelectorAll('#cronEverySecond:checked').length) {
+				seconds = '*';
+			} else if (document.querySelectorAll('#cronSecondIncrement:checked').length) {
+				seconds = document.querySelector("#cronSecondIncrementStart").value;
+				seconds += '/';
+				seconds += document.querySelector('#cronSecondIncrementIncrement').value;
+			} else if (document.querySelectorAll('#cronSecondSpecific:checked').length) {
+				document.querySelectorAll('[name="cronSecondSpecific"]:checked').forEach(chck => {
+					seconds += chck.value;
+					seconds += ',';
+				});
+				if (seconds === '') {
+					seconds = '0';
+				} else {
+					seconds = seconds.slice(0, -1);
+				}
+			} else {
+				seconds = document.querySelector('#cronSecondRangeStart').value;
+				seconds += '-';
+				seconds += document.querySelector('#cronSecondRangeEnd').value;
+			}
+			cronResult.cronResultSecond.value = seconds;
+		}
+
+		function resolveSeconds(seconds) {
+			if (seconds == '*') {
+				document.querySelector('#cronEverySecond').checked = true;
+			} else if (seconds.includes("/")) {
+				document.querySelector('#cronSecondIncrement').checked = true;
+				document.querySelector("#cronSecondIncrementStart").value = seconds.split("/")[0];
+				document.querySelector('#cronSecondIncrementIncrement').value = seconds.split("/")[1];
+			} else if (seconds.includes("-")) {
+				document.querySelector('#cronSecondRange').checked = true;
+				document.querySelector("#cronSecondRangeStart").value = seconds.split("-")[0];
+				document.querySelector('#cronSecondRangeEnd').value = seconds.split("-")[1];
+			} else {
+				document.querySelector('#cronSecondSpecific').checked = true;
+				let splited = seconds.split(",")
+				Array.prototype.slice.call(document.querySelectorAll('[name="cronSecondSpecific"]')).filter(chck => {
+					return splited.includes(chck.value);
+				}).forEach(chck => {
+					chck.checked = true;
+				});
+			}
+		}
+
+		function computeMinutes() {
+			let minutes = '';
+			if (document.querySelectorAll('#cronEveryMinute:checked').length) {
+				minutes = '*';
+			} else if (document.querySelectorAll('#cronMinuteIncrement:checked').length) {
+				minutes = document.querySelector('#cronMinuteIncrementStart').value;
+				minutes += '/';
+				minutes += document.querySelector('#cronMinuteIncrementIncrement').value;
+			} else if (document.querySelectorAll('#cronMinuteSpecific:checked').length) {
+				document.querySelectorAll('[name="cronMinuteSpecific"]:checked').forEach(chck => {
+					minutes += chck.value;
+					minutes += ',';
+				});
+				if (minutes === '') {
+					minutes = '0';
+				} else {
+					minutes = minutes.slice(0, -1);
+				}
+			} else {
+				minutes = document.querySelector('#cronMinuteRangeStart').value;
+				minutes += '-';
+				minutes += document.querySelector('#cronMinuteRangeEnd').value;
+			}
+			cronResult.cronResultMinute.value = minutes;
+		}
+
+		function resolveMinutes(minutes) {
+			if (minutes == '*') {
+				document.querySelector('#cronEveryMinute').checked = true;
+			} else if (minutes.includes("/")) {
+				document.querySelector('#cronMinuteIncrement').checked = true;
+				document.querySelector("#cronMinuteIncrementStart").value = minutes.split("/")[0];
+				document.querySelector('#cronMinuteIncrementIncrement').value = minutes.split("/")[1];
+			} else if (minutes.includes("-")) {
+				document.querySelector('#cronMinuteRange').checked = true;
+				document.querySelector("#cronMinuteRangeStart").value = minutes.split("-")[0];
+				document.querySelector('#cronMinuteRangeEnd').value = minutes.split("-")[1];
+			} else {
+				document.querySelector('#cronMinuteSpecific').checked = true;
+				let splited = minutes.split(",")
+				Array.prototype.slice.call(document.querySelectorAll('[name="cronMinuteSpecific"]')).filter(chck => {
+					return splited.includes(chck.value);
+				}).forEach(chck => {
+					chck.checked = true;
+				});
+			}
+		}
+
+		function computeHours() {
+			let hours = '';
+			if (document.querySelectorAll('#cronEveryHour:checked').length) {
+				hours = '*';
+			} else if (document.querySelectorAll('#cronHourIncrement:checked').length) {
+				hours = document.querySelector('#cronHourIncrementStart').value;
+				hours += '/';
+				hours += document.querySelector('#cronHourIncrementIncrement').value;
+			} else if (document.querySelectorAll('#cronHourSpecific:checked').length) {
+				document.querySelectorAll('[name="cronHourSpecific"]:checked').forEach(chck => {
+					hours += chck.value;
+					hours += ',';
+				});
+				if (hours === '') {
+					hours = '0';
+				} else {
+					hours = hours.slice(0, -1);
+				}
+			} else {
+				hours = document.querySelector('#cronHourRangeStart').value;
+				hours += '-';
+				hours += document.querySelector('#cronHourRangeEnd').value;
+			}
+			cronResult.cronResultHour.value = hours;
+		}
+
+		function resolveHours(hours) {
+			if (hours == '*') {
+				document.querySelector('#cronEveryHour').checked = true;
+			} else if (hours.includes("/")) {
+				document.querySelector('#cronHourIncrement').checked = true;
+				document.querySelector("#cronHourIncrementStart").value = hours.split("/")[0];
+				document.querySelector('#cronHourIncrementIncrement').value = hours.split("/")[1];
+			} else if (hours.includes("-")) {
+				document.querySelector('#cronHourRange').checked = true;
+				document.querySelector("#cronHourRangeStart").value = hours.split("-")[0];
+				document.querySelector('#cronHourRangeEnd').value = hours.split("-")[1];
+			} else {
+				document.querySelector('#cronHourSpecific').checked = true;
+				let splited = hours.split(",")
+				Array.prototype.slice.call(document.querySelectorAll('[name="cronHourSpecific"]')).filter(chck => {
+					return splited.includes(chck.value);
+				}).forEach(chck => {
+					chck.checked = true;
+				});
+			}
+		}
+
+		function computeDay() {
+			let dow = '';
+			let dom = '';
+
+			if (document.querySelectorAll('#cronEveryDay:checked').length) {
+				dow = '*';
+				dom = '?';
+			} else if (document.querySelectorAll('#cronDowIncrement:checked').length) {
+				dow = document.querySelector('#cronDowIncrementStart').value;
+				dow += '/';
+				dow += document.querySelector('#cronDowIncrementIncrement').value;
+				dom = '?';
+			} else if (document.querySelectorAll('#cronDomIncrement:checked').length) {
+				dom = document.querySelector('#cronDomIncrementStart').value;
+				dom += '/';
+				dom += document.querySelector('#cronDomIncrementIncrement').value;
+				dow = '?';
+			} else if (document.querySelectorAll('#cronDowSpecific:checked').length) {
+				dom = '?';
+				document.querySelectorAll('[name="cronDowSpecific"]:checked').forEach(chck => {
+					dow += chck.value;
+					dow += ',';
+				});
+				if (dow === '') {
+					dow = 'SUN';
+				} else {
+					dow = dow.slice(0, -1);
+				}
+			} else if (document.querySelectorAll('#cronDomSpecific:checked').length) {
+				dow = '?';
+				document.querySelectorAll('[name="cronDomSpecific"]:checked').forEach(chck => {
+					dom += chck.value;
+					dom += ',';
+				});
+				if (dom === '') {
+					dom = '1';
+				} else {
+					dom = dom.slice(0, -1);
+				}
+			} else if (document.querySelectorAll('#cronLastDayOfMonth:checked').length) {
+				dow = '?';
+				dom = 'L';
+			} else if (document.querySelectorAll('#cronLastWeekdayOfMonth:checked').length) {
+				dow = '?';
+				dom = 'LW';
+			} else if (document.querySelectorAll('#cronLastSpecificDom:checked').length) {
+				dom = '?';
+				dow = document.querySelector('#cronLastSpecificDomDay').value;
+				dow += 'L';
+			} else if (document.querySelectorAll('#cronDaysBeforeEom:checked').length) {
+				dow = '?';
+				dom = 'L-';
+				dom += document.querySelector('#cronDaysBeforeEomMinus').value;
+			} else if (document.querySelectorAll('#cronDaysNearestWeekdayEom:checked').length) {
+				dow = '?';
+				dom = document.querySelector('#cronDaysNearestWeekday').value;
+				dom += 'W';
+			} else if (document.querySelectorAll('#cronNthDay:checked').length) {
+				dom = '?';
+				dow = document.querySelector('#cronNthDayDay').value;
+				dow += '#';
+				dow += document.querySelector('#cronNthDayNth').value;
+			}
+			cronResult.cronResultDom.value = dom;
+			cronResult.cronResultDow.value = dow;
+		}
+
+		function resolveDay(dow, dom) {
+			if (dow == '*' && dom == '?') {
+				document.querySelector('#cronEveryDay').checked = true;
+			} else if (dow.includes("/") && dom == '?') {
+				document.querySelector('#cronDowIncrement').checked = true;
+				document.querySelector('#cronDowIncrementStart').value = dow.split("/")[0];
+				document.querySelector('#cronDowIncrementIncrement').value = dow.split("/")[1];
+			} else if (dom.includes("/") && dow == '?') {
+				document.querySelector('#cronDomIncrement').checked = true;
+				document.querySelector('#cronDomIncrementStart').value = dom.split("/")[0];
+				document.querySelector('#cronDomIncrementIncrement').value = dom.split("/")[1];
+			} else if (dow == '?' && dom == 'L') {
+				document.querySelector('#cronLastDayOfMonth').checked = true;
+			} else if (dow == '?' && dom == 'LW') {
+				document.querySelector('#cronLastWeekdayOfMonth').checked = true;
+			} else if (dom == '?' && dow.endsWith('L')) {
+				document.querySelector('#cronLastSpecificDom').checked = true;
+				document.querySelector('#cronLastSpecificDomDay').value = dow.substring(0, dow.length - 1)
+			} else if (dow == '?' && dom.startsWith('L-')) {
+				document.querySelector('#cronDaysBeforeEom').checked = true;
+				document.querySelector('#cronDaysBeforeEomMinus').value = dom.substr(2)
+			} else if (dow == '?' && dom.endsWith('W')) {
+				document.querySelector('#cronDaysNearestWeekdayEom').checked = true;
+				document.querySelector('#cronDaysNearestWeekday').value = dow.substring(0, dow.length - 1)
+			} else if (dom == '?' && dow.includes("#")) {
+				document.querySelector('#cronNthDay').checked = true;
+				document.querySelector('#cronNthDayDay').value = dow.split("#")[0];
+				document.querySelector('#cronNthDayNth').value = dow.split("#")[1];
+			} else if (dom == '?') {
+				document.querySelector('#cronDowSpecific').checked = true;
+				let splited = dow.split(",");
+				Array.prototype.slice.call(document.querySelectorAll('[name="cronDowSpecific"]')).filter(chck => {
+					return splited.includes(chck.value);
+				}).forEach(chck => {
+					chck.checked = true;
+				});
+			} else if (dow == '?') {
+				document.querySelector('#cronDomSpecific').checked = true;
+				let splited = dom.split(",");
+				Array.prototype.slice.call(document.querySelectorAll('[name="cronDomSpecific"]')).filter(chck => {
+					return splited.includes(chck.value);
+				}).forEach(chck => {
+					chck.checked = true;
+				});
+			}
+		}
+
+		function computeMonth() {
+			let month = '';
+			if (document.querySelectorAll('#cronEveryMonth:checked').length) {
+				month = '*';
+			} else if (document.querySelectorAll('#cronMonthIncrement:checked').length) {
+				month = document.querySelector('#cronMonthIncrementStart').value;
+				month += '/';
+				month += document.querySelector('#cronMonthIncrementIncrement').value;
+			} else if (document.querySelectorAll('#cronMonthSpecific:checked').length) {
+				document.querySelectorAll('[name="cronMonthSpecific"]:checked').forEach(chck => {
+					month += chck.value;
+					month += ',';
+				});
+				if (month === '') {
+					month = '1';
+				} else {
+					month = month.slice(0, -1);
+				}
+			} else {
+				month = document.querySelector('#cronMonthRangeStart').value;
+				month += '-';
+				month += document.querySelector('#cronMonthRangeEnd').value;
+			}
+			cronResult.cronResultMonth.value = month;
+		}
+
+		function resolveMonth(month) {
+			if (month == '*') {
+				document.querySelector('#cronEveryMonth').checked = true;
+			} else if (month.includes("/")) {
+				document.querySelector('#cronMonthIncrement').checked = true;
+				document.querySelector("#cronMonthIncrementStart").value = month.split("/")[0];
+				document.querySelector('#cronMonthIncrementIncrement').value = month.split("/")[1];
+			} else if (hours.includes("-")) {
+				document.querySelector('#cronMonthRange').checked = true;
+				document.querySelector("#cronMonthRangeStart").value = month.split("-")[0];
+				document.querySelector('#cronMonthRangeEnd').value = month.split("-")[1];
+			} else {
+				document.querySelector('#cronMonthSpecific').checked = true;
+				let splited = month.split(",")
+				Array.prototype.slice.call(document.querySelectorAll('[name="cronMonthSpecific"]')).filter(chck => {
+					return splited.includes(chck.value);
+				}).forEach(chck => {
+					chck.checked = true;
+				});
+			}
+		}
+
+		function computeYear() {
+			var year = '';
+			if (document.querySelectorAll('#cronEveryYear:checked').length) {
+				year = '*';
+			} else if (document.querySelectorAll('#cronYearIncrement:checked').length) {
+				year = document.querySelector('#cronYearIncrementStart').value;
+				year += '/';
+				year += document.querySelector('#cronYearIncrementIncrement').value;
+			} else if (document.querySelectorAll('#cronYearSpecific:checked').length) {
+				document.querySelectorAll('[name="cronYearSpecific"]:checked').forEach(chck => {
+					year += chck.value;
+					year += ',';
+				});
+				if (year === '') {
+					year = currentYear;
+				} else {
+					year = year.slice(0, -1);
+				}
+			} else {
+				year = document.querySelector('#cronYearRangeStart').value;
+				year += '-';
+				year += document.querySelector('#cronYearRangeEnd').value;
+			}
+			cronResult.cronResultYear.value = year;
+		}
+
+		function resolveYear(year) {
+			if (year == '*') {
+				document.querySelector('#cronEveryYear').checked = true;
+			} else if (year.includes("/")) {
+				document.querySelector('#cronYearIncrement').checked = true;
+				document.querySelector("#cronYearIncrementStart").value = year.split("/")[0];
+				document.querySelector('#cronYearIncrementIncrement').value = year.split("/")[1];
+			} else if (year.includes("-")) {
+				document.querySelector('#cronYearRange').checked = true;
+				document.querySelector("#cronYearRangeStart").value = year.split("-")[0];
+				document.querySelector('#cronYearRangeEnd').value = year.split("-")[1];
+			} else {
+				document.querySelector('#cronYearSpecific').checked = true;
+				let splited = year.split(",")
+				Array.prototype.slice.call(document.querySelectorAll('[name="cronYearSpecific"]')).filter(chck => {
+					return splited.includes(chck.value);
+				}).forEach(chck => {
+					chck.checked = true;
+				});
+			}
+		}
+
+		DocumentUtils.ready(() => {
+
+			document.getElementById('apply-cronExp').value = cronExp;
+
+			document.getElementById('apply-btn').addEventListener("click", () => {
+				DialogUtils.closeWindow(this, {cronExp: document.getElementById('apply-cronExp').value});
+			});
+
+			// Second
+			ElementUtils.selectOptions(document.getElementById('cronSecondIncrementIncrement'), options1to60, 1);
+			ElementUtils.selectOptions(document.getElementById('cronSecondIncrementStart'), options00to59, 0);
+			checkBoxTable(document.getElementById('cronSecondSpecificTable'), "cronSecondSpecific", "cronSecond", 10, options00to59);
+			ElementUtils.selectOptions(document.getElementById('cronSecondRangeStart'), options00to59, 0);
+			ElementUtils.selectOptions(document.getElementById('cronSecondRangeEnd'), options00to59, 0);
+
+			// Minute
+			ElementUtils.selectOptions(document.getElementById('cronMinuteIncrementIncrement'), options1to60, 1);
+			ElementUtils.selectOptions(document.getElementById('cronMinuteIncrementStart'), options00to59, 0);
+			checkBoxTable(document.getElementById('cronMinuteSpecificTable'), "cronMinuteSpecific", "cronMinute", 10, options00to59);
+			ElementUtils.selectOptions(document.getElementById('cronMinuteRangeStart'), options00to59, 0);
+			ElementUtils.selectOptions(document.getElementById('cronMinuteRangeEnd'), options00to59, 0);
+
+			// Hour
+			ElementUtils.selectOptions(document.getElementById('cronHourIncrementIncrement'), options1to60, 1);
+			ElementUtils.selectOptions(document.getElementById('cronHourIncrementStart'), options00to59, 0);
+			checkBoxTable(document.getElementById('cronHourSpecificTable'), "cronHourSpecific", "cronHour", 10, options00to23);
+			ElementUtils.selectOptions(document.getElementById('cronHourRangeStart'), options00to23, 0);
+			ElementUtils.selectOptions(document.getElementById('cronHourRangeEnd'), options00to23, 0);
+
+			// Day
+			ElementUtils.selectOptions(document.getElementById('cronDowIncrementIncrement'), options1to7, 1);
+			ElementUtils.selectOptions(document.getElementById('cronDowIncrementStart'), optionsDayOfWeek, 1);
+			ElementUtils.selectOptions(document.getElementById('cronDomIncrementIncrement'), options1to31, 1);
+			ElementUtils.selectOptions(document.getElementById('cronDomIncrementStart'), optionsDayOfMonth, 1);
+			checkBoxTable(document.getElementById('cronDowSpecificTable'), "cronDowSpecific", "cronDow", 7, checkboxesDayOfWeek);
+			checkBoxTable(document.getElementById('cronDomSpecificTable'), "cronDomSpecific", "cronDom", 10, options01to31);
+			ElementUtils.selectOptions(document.getElementById('cronLastSpecificDomDay'), optionsDayOfWeek, 1);
+			ElementUtils.selectOptions(document.getElementById('cronDaysBeforeEomMinus'), options1to31, 1);
+			ElementUtils.selectOptions(document.getElementById('cronDaysNearestWeekday'), optionsDayOfMonth, 1);
+			ElementUtils.selectOptions(document.getElementById('cronNthDayNth'), optionsWeekOfMonth, 1);
+			ElementUtils.selectOptions(document.getElementById('cronNthDayDay'), optionsDayOfWeek, 1);
+
+			// Month
+			ElementUtils.selectOptions(document.getElementById('cronMonthIncrementIncrement'), options1to12, 1);
+			ElementUtils.selectOptions(document.getElementById('cronMonthIncrementStart'), optionsMonth, 1);
+			checkBoxTable(document.getElementById('cronMonthSpecificTable'), "cronMonthSpecific", "cronMonth", 6, checkboxesMonth);
+			ElementUtils.selectOptions(document.getElementById('cronMonthRangeStart'), optionsMonth, 1);
+			ElementUtils.selectOptions(document.getElementById('cronMonthRangeEnd'), optionsMonth, 1);
+
+			// Year
+			ElementUtils.selectOptions(document.getElementById('cronYearIncrementIncrement'), optionsYearAmount, 1);
+			ElementUtils.selectOptions(document.getElementById('cronYearIncrementStart'), optionsYear, currentYear);
+			checkBoxTable(document.getElementById('cronYearSpecificTable'), "cronYearSpecific", "cronYear", 10, optionsYear);
+			ElementUtils.selectOptions(document.getElementById('cronYearRangeStart'), optionsYear, currentYear);
+			ElementUtils.selectOptions(document.getElementById('cronYearRangeEnd'), optionsYear, currentYear);
+
+			let cronExpSplited = cronExp.split(" ");
+			let cronExpSplitedSeconds = cronExpSplited[0];
+			let cronExpSplitedMinutes = cronExpSplited[1];
+			let cronExpSplitedHours = cronExpSplited[2];
+			let cronExpSplitedDom = cronExpSplited[3];
+			let cronExpSplitedMonth = cronExpSplited[4];
+			let cronExpSplitedDow = cronExpSplited[5];
+			let cronExpSplitedYear = cronExpSplited[6];
+			resolveSeconds(cronExpSplitedSeconds);
+			resolveMinutes(cronExpSplitedMinutes);
+			resolveHours(cronExpSplitedHours);
+			resolveDay(cronExpSplitedDow, cronExpSplitedDom);
+			resolveMonth(cronExpSplitedMonth);
+			resolveYear(cronExpSplitedYear);
+
+			document.querySelectorAll('#crontabs input, #crontabs select').forEach(e => {
+				e.addEventListener("change", function () {
+					computeSeconds();
+					computeMinutes();
+					computeHours();
+					computeDay();
+					computeMonth();
+					computeYear();
+					let seconds = cronResult.cronResultSecond.value;
+					let minutes = cronResult.cronResultMinute.value;
+					let hours = cronResult.cronResultHour.value;
+					let dom = cronResult.cronResultDom.value;
+					let month = cronResult.cronResultMonth.value;
+					let dow = cronResult.cronResultDow.value;
+					let year = cronResult.cronResultYear.value;
+					document.getElementById('apply-cronExp').value = seconds + ' ' + minutes + ' ' + hours + ' ' + dom + ' ' + month + ' ' + dow + ' ' + year;
+				});
+			});
+
+		});
+
+		function checkBoxTable(target, name, idPrefix, changeLine, items = []) {
+			let buffer = [];
+			let count = 0;
+			buffer.push("<tr>")
+			items.forEach(item => {
+				count++;
+				buffer.push(`
+							<td>
+								<div class="form-check">
+									<input class="form-check-input" name="${name}" type="checkbox" id="${idPrefix}${item.value}" value="${item.value}">
+									<label class="form-check-label" for="${idPrefix}${item.value}">${item.text}</label>
+								</div>
+							</td>
+						`);
+				if (count % changeLine == 0) {
+					buffer.push("</tr>");
+					buffer.push("<tr>")
+				}
+			})
+			buffer.push("</tr>");
+			target.innerHTML = buffer.join("");
+		}
+
+		function createNumberArray(start, end, fillHead) {
+			let options = [];
+			for (let i = start; i <= end; i++) {
+				options.push({text: fillHead ? TextUtils.fillHead(i, "0", 2) : i, value: i})
+			}
+			return options;
+		}
+
+
+	</script>
+</head>
+
+<body>
+	<form class="invisible" name="cronResult">
+		<input type="hidden" name="cronResultSecond">
+		<input type="hidden" name="cronResultMinute">
+		<input type="hidden" name="cronResultHour">
+		<input type="hidden" name="cronResultDom">
+		<input type="hidden" name="cronResultMonth">
+		<input type="hidden" name="cronResultDow">
+		<input type="hidden" name="cronResultYear">
+	</form>
+	
+	<div class="container-fluid p-3">
+		
+		<div class="row">
+			<div class="col">
+				<div class="input-group mb-3">
+					<input id="apply-cronExp" type="text" class="form-control text-center" readonly>
+					<button class="btn btn-outline-success" type="button" id="apply-btn">
+						<i class="bi bi-save"></i>
+					</button>
+				</div>
+			</div>
+		</div>
+		<div class="row">
+			<ul class="nav nav-tabs" id="myTab" role="tablist">
+		  		<li class="nav-item" role="presentation">
+		    		<button class="nav-link active" id="seconds-tab" data-bs-toggle="tab" data-bs-target="#seconds" type="button" role="tab" aria-controls="seconds" aria-selected="true">Seconds</button>
+		  		</li>
+		  		<li class="nav-item" role="presentation">
+		    		<button class="nav-link" id="minutes-tab" data-bs-toggle="tab" data-bs-target="#minutes" type="button" role="tab" aria-controls="minutes" aria-selected="false">Minutes</button>
+		  		</li>
+		  		<li class="nav-item" role="presentation">
+		    		<button class="nav-link" id="hours-tab" data-bs-toggle="tab" data-bs-target="#hours" type="button" role="tab" aria-controls="hours" aria-selected="false">Hours</button>
+		  		</li>
+		  		<li class="nav-item" role="presentation">
+		    		<button class="nav-link" id="day-tab" data-bs-toggle="tab" data-bs-target="#day" type="button" role="tab" aria-controls="day" aria-selected="false">Day</button>
+		  		</li>
+		  		<li class="nav-item" role="presentation">
+		    		<button class="nav-link" id="month-tab" data-bs-toggle="tab" data-bs-target="#month" type="button" role="tab" aria-controls="month" aria-selected="false">Month</button>
+		  		</li>
+		  		<li class="nav-item" role="presentation">
+		    		<button class="nav-link" id="year-tab" data-bs-toggle="tab" data-bs-target="#year" type="button" role="tab" aria-controls="year" aria-selected="false">Year</button>
+		  		</li>
+			</ul>
+			<div class="tab-content p-3" id="crontabs">
+			
+				<!-- seconds tab-pane -->
+				<div class="tab-pane fade show active" id="seconds" role="tabpanel" aria-labelledby="seconds-tab">
+				
+					<div class="row">
+						<div class="input-group mb-3">
+							<div class="input-group-text">
+								<input class="form-check-input" type="radio" id="cronEverySecond" name="cronSecond">
+							</div>
+							<label class="input-group-text" for="cronEverySecond">Every second</label>
+						</div>
+					</div>
+					
+					<div class="row">
+						<div class="input-group mb-3">
+							<div class="input-group-text">
+								<input class="form-check-input" type="radio" id="cronSecondIncrement" name="cronSecond">
+							</div>
+							<label class="input-group-text" for="cronSecondIncrement">Every</label>
+							<select class="form-select text-center" id="cronSecondIncrementIncrement"></select>
+							<label class="input-group-text" for="cronSecondIncrement">second(s) starting at second</label>
+							<select class="form-select text-center" id="cronSecondIncrementStart"></select>
+						</div>
+					</div>
+					
+					<div class="row">
+						<div class="input-group mb-3">
+							<div class="input-group-text">
+								<input class="form-check-input" type="radio" id="cronSecondSpecific" name="cronSecond">
+							</div>
+							<label class="input-group-text" for="cronSecondSpecific">Specific second (choose one or many)</label>
+						</div>
+						<div class="ps-5">
+							<table class="table table-borderless" id="cronSecondSpecificTable"></table>
+						</div>
+					</div>
+					
+					<div class="row">
+						<div class="input-group mb-3">
+							<div class="input-group-text">
+								<input class="form-check-input" type="radio" id="cronSecondRange" name="cronSecond">
+							</div>
+							<label class="input-group-text" for="cronSecondRange">Every second between second</label>
+							<select class="form-select text-center" id="cronSecondRangeStart"></select>
+							<label class="input-group-text" for="cronSecondRange">and second</label>
+							<select class="form-select text-center" id="cronSecondRangeEnd"></select>
+						</div>
+					</div>
+					
+				</div>
+				
+				<!-- minutes tab-pane -->
+				<div class="tab-pane fade" id="minutes" role="tabpanel" aria-labelledby="minutes-tab">
+				
+					<div class="row">
+						<div class="input-group mb-3">
+							<div class="input-group-text">
+								<input class="form-check-input" type="radio" id="cronEveryMinute" name="cronMinute">
+							</div>
+							<label class="input-group-text" for="cronEveryMinute">Every minute</label>
+						</div>
+					</div>
+					
+					<div class="row">
+						<div class="input-group mb-3">
+							<div class="input-group-text">
+								<input class="form-check-input" type="radio" id="cronMinuteIncrement" name="cronMinute">
+							</div>
+							<label class="input-group-text" for="cronMinuteIncrement">Every</label>
+							<select class="form-select text-center" id="cronMinuteIncrementIncrement"></select>
+							<label class="input-group-text" for="cronMinuteIncrement">minute(s) starting at minute</label>
+							<select class="form-select text-center" id="cronMinuteIncrementStart"></select>
+						</div>
+					</div>
+					
+					<div class="row">
+						<div class="input-group mb-3">
+							<div class="input-group-text">
+								<input class="form-check-input" type="radio" id="cronMinuteSpecific" name="cronMinute">
+							</div>
+							<label class="input-group-text" for="cronMinuteSpecific">Specific minute (choose one or many)</label>
+						</div>
+						<div class="ps-5">
+							<table class="table table-borderless" id="cronMinuteSpecificTable"></table>
+						</div>
+					</div>
+					
+					<div class="row">
+						<div class="input-group mb-3">
+							<div class="input-group-text">
+								<input class="form-check-input" type="radio" id="cronMinuteRange" name="cronMinute">
+							</div>
+							<label class="input-group-text" for="cronMinuteRange">Every minute between minute</label>
+							<select class="form-select text-center" id="cronMinuteRangeStart"></select>
+							<label class="input-group-text" for="cronSecondRange">and minute</label>
+							<select class="form-select text-center" id="cronMinuteRangeEnd"></select>
+						</div>
+					</div>
+					
+				</div>
+				
+				<!-- hours tab-pane -->
+				<div class="tab-pane fade" id="hours" role="tabpanel" aria-labelledby="hours-tab">
+				
+					<div class="row">
+						<div class="input-group mb-3">
+							<div class="input-group-text">
+								<input class="form-check-input" type="radio" id="cronEveryHour" name="cronHour">
+							</div>
+							<label class="input-group-text" for="cronEveryHour">Every hour</label>
+						</div>
+					</div>
+					
+					<div class="row">
+						<div class="input-group mb-3">
+							<div class="input-group-text">
+								<input class="form-check-input" type="radio" id="cronHourIncrement" name="cronHour">
+							</div>
+							<label class="input-group-text" for="cronHourIncrement">Every</label>
+							<select class="form-select text-center" id="cronHourIncrementIncrement"></select>
+							<label class="input-group-text" for="cronHourIncrement">hour(s) starting at hour</label>
+							<select class="form-select text-center" id="cronHourIncrementStart"></select>
+						</div>
+					</div>
+					
+					<div class="row">
+						<div class="input-group mb-3">
+							<div class="input-group-text">
+								<input class="form-check-input" type="radio" id="cronHourSpecific" name="cronHour">
+							</div>
+							<label class="input-group-text" for="cronHourSpecific">Specific hour (choose one or many)</label>
+						</div>
+						<div class="ps-5">
+							<table class="table table-borderless" id="cronHourSpecificTable"></table>
+						</div>
+					</div>
+					
+					<div class="row">
+						<div class="input-group mb-3">
+							<div class="input-group-text">
+								<input class="form-check-input" type="radio" id="cronHourRange" name="cronHour">
+							</div>
+							<label class="input-group-text" for="cronHourRange">Every hour between hour</label>
+							<select class="form-select text-center" id="cronHourRangeStart"></select>
+							<label class="input-group-text" for="cronHourRange">and hour</label>
+							<select class="form-select text-center" id="cronHourRangeEnd"></select>
+						</div>
+					</div>
+					
+				</div>
+				
+				<!-- day tab-pane -->
+				<div class="tab-pane fade" id="day" role="tabpanel" aria-labelledby="day-tab">
+				
+					<div class="row">
+						<div class="input-group mb-3">
+							<div class="input-group-text">
+								<input class="form-check-input" type="radio" id="cronEveryDay" name="cronDay">
+							</div>
+							<label class="input-group-text" for="cronEveryDay">Every day</label>
+						</div>
+					</div>
+					
+					<div class="row">
+						<div class="input-group mb-3">
+							<div class="input-group-text">
+								<input class="form-check-input" type="radio" id="cronDowIncrement" name="cronDay">
+							</div>
+							<label class="input-group-text" for="cronDowIncrement">Every</label>
+							<select class="form-select text-center" id="cronDowIncrementIncrement"></select>
+							<label class="input-group-text" for="cronDowIncrement">day(s) starting on</label>
+							<select class="form-select text-center" id="cronDowIncrementStart"></select>
+						</div>
+					</div>
+					
+					<div class="row">
+						<div class="input-group mb-3">
+							<div class="input-group-text">
+								<input class="form-check-input" type="radio" id="cronDomIncrement" name="cronDay">
+							</div>
+							<label class="input-group-text" for="cronDomIncrement">Every</label>
+							<select class="form-select text-center" id="cronDomIncrementIncrement"></select>
+							<label class="input-group-text" for="cronDomIncrement">day(s) starting on the</label>
+							<select class="form-select text-center" id="cronDomIncrementStart"></select>
+							<label class="input-group-text" for="cronDomIncrement">of the month</label>
+						</div>
+					</div>
+					
+					<div class="row">
+						<div class="input-group mb-3">
+							<div class="input-group-text">
+								<input class="form-check-input" type="radio" id="cronDowSpecific" name="cronDay">
+							</div>
+							<label class="input-group-text" for="cronDowSpecific">Specific day of the week (choose one or many)</label>	
+						</div>
+						<div class="ps-5">
+							<table class="table table-borderless" id="cronDowSpecificTable"></table>
+						</div>
+					</div>
+					
+					<div class="row">
+						<div class="input-group mb-3">
+							<div class="input-group-text">
+								<input class="form-check-input" type="radio" id="cronDomSpecific" name="cronDay">
+							</div>
+							<label class="input-group-text" for="cronDomSpecific">Specific day of month (choose one or many)</label>
+						</div>
+						<div class="ps-5">
+							<table class="table table-borderless" id="cronDomSpecificTable"></table>
+						</div>
+					</div>
+					
+					<div class="row">
+						<div class="input-group mb-3">
+							<div class="input-group-text">
+								<input class="form-check-input" type="radio" id="cronLastDayOfMonth" name="cronDay">
+							</div>
+							<label class="input-group-text" for="cronLastDayOfMonth">On the last day of the month</label>
+						</div>
+					</div>
+					
+					<div class="row">
+						<div class="input-group mb-3">
+							<div class="input-group-text">
+								<input class="form-check-input" type="radio" id="cronLastWeekdayOfMonth" name="cronDay">
+							</div>
+							<label class="input-group-text" for="cronLastWeekdayOfMonth">On the last weekday of the month</label>
+						</div>
+					</div>
+					
+					<div class="row">
+						<div class="input-group mb-3">
+							<div class="input-group-text">
+								<input class="form-check-input" type="radio" id="cronLastSpecificDom" name="cronDay">
+							</div>
+							<label class="input-group-text" for="cronLastSpecificDom">On the last</label>
+							<select class="form-select text-center" id="cronLastSpecificDomDay"></select>
+							<label class="input-group-text" for="cronLastSpecificDom">of the month</label>
+						</div>
+					</div>
+					
+					<div class="row">
+						<div class="input-group mb-3">
+							<div class="input-group-text">
+								<input class="form-check-input" type="radio" id="cronDaysBeforeEom" name="cronDay">
+							</div>
+							<label class="input-group-text" for="cronDaysBeforeEom">On the last</label>
+							<select class="form-select text-center" id="cronDaysBeforeEomMinus"></select>
+							<label class="input-group-text" for="cronDaysBeforeEom">day(s) before the end of the month</label>
+						</div>
+					</div>
+					
+					<div class="row">
+						<div class="input-group mb-3">
+							<div class="input-group-text">
+								<input class="form-check-input" type="radio" id="cronDaysNearestWeekdayEom" name="cronDay">
+							</div>
+							<label class="input-group-text" for="cronDaysNearestWeekdayEom">Nearest weekday (Monday to Friday) to the</label>
+							<select class="form-select text-center" id="cronDaysNearestWeekday"></select>
+							<label class="input-group-text" for="cronDaysNearestWeekdayEom">of the month</label>
+						</div>
+					</div>
+					
+					<div class="row">
+						<div class="input-group mb-3">
+							<div class="input-group-text">
+								<input class="form-check-input" type="radio" id="cronNthDay" name="cronDay">
+							</div>
+							<label class="input-group-text" for="cronNthDay">On the</label>
+							<select class="form-select text-center" id="cronNthDayNth"></select>
+							<select class="form-select text-center" id="cronNthDayDay"></select>
+							<label class="input-group-text" for="cronNthDay">of the month</label>
+						</div>
+					</div>
+					
+				</div>
+				
+				<!-- month tab-pane -->
+				<div class="tab-pane fade" id="month" role="tabpanel" aria-labelledby="month-tab">
+				
+					<div class="row">
+						<div class="input-group mb-3">
+							<div class="input-group-text">
+								<input class="form-check-input" type="radio" id="cronEveryMonth" name="cronMonth">
+							</div>
+							<label class="input-group-text" for="cronEveryMonth">Every month</label>
+						</div>
+					</div>
+					
+					<div class="row">
+						<div class="input-group mb-3">
+							<div class="input-group-text">
+								<input class="form-check-input" type="radio" id="cronMonthIncrement" name="cronMonth">
+							</div>
+							<label class="input-group-text" for="cronMonthIncrement">Every</label>
+							<select class="form-select text-center" id="cronMonthIncrementIncrement"></select>
+							<label class="input-group-text" for="cronMonthIncrement">month(s) starting in</label>
+							<select class="form-select text-center" id="cronMonthIncrementStart"></select>
+						</div>
+					</div>
+					
+					<div class="row">
+						<div class="input-group mb-3">
+							<div class="input-group-text">
+								<input class="form-check-input" type="radio" id="cronMonthSpecific" name="cronMonth">
+							</div>
+							<label class="input-group-text" for="cronMonthSpecific">Specific month (choose one or many)</label>	
+						</div>
+						<div class="ps-5">
+							<table class="table table-borderless" id="cronMonthSpecificTable"></table>
+						</div>
+					</div>
+					
+					<div class="row">
+						<div class="input-group mb-3">
+							<div class="input-group-text">
+								<input class="form-check-input" type="radio" id="cronMonthRange" name="cronMonth">
+							</div>
+							<label class="input-group-text" for="cronMonthRange">Every month between</label>
+							<select class="form-select text-center" id="cronMonthRangeStart"></select>
+							<label class="input-group-text" for="cronMonthRange">and</label>
+							<select class="form-select text-center" id="cronMonthRangeEnd"></select>
+						</div>
+					</div>
+				
+				</div>
+				
+				<!-- year tab-pane -->
+				<div class="tab-pane fade" id="year" role="tabpanel" aria-labelledby="year-tab">
+				
+					<div class="row">
+						<div class="input-group mb-3">
+							<div class="input-group-text">
+								<input class="form-check-input" type="radio" id="cronEveryYear" name="cronYear" checked="">
+							</div>
+							<label class="input-group-text" for="cronEveryYear">Any year</label>
+						</div>
+					</div>
+					
+					<div class="row">
+						<div class="input-group mb-3">
+							<div class="input-group-text">
+								<input class="form-check-input" type="radio" id="cronYearIncrement" name="cronYear">
+							</div>
+							<label class="input-group-text" for="cronYearIncrement">Every</label>
+							<select class="form-select text-center" id="cronYearIncrementIncrement"></select>
+							<label class="input-group-text" for="cronYearIncrement">years(s) starting in</label>
+							<select class="form-select text-center" id="cronYearIncrementStart"></select>
+						</div>
+					</div>
+					
+					<div class="row">
+						<div class="input-group mb-3">
+							<div class="input-group-text">
+								<input class="form-check-input" type="radio" id="cronYearSpecific" name="cronYear">
+							</div>
+							<label class="input-group-text" for="cronYearSpecific">Specific year (choose one or many)</label>
+						</div>
+						<div class="ps-5">
+							<table class="table table-borderless" id="cronYearSpecificTable"></table>
+						</div>
+					</div>
+					
+					<div class="row">
+						<div class="input-group mb-3">
+							<div class="input-group-text">
+								<input class="form-check-input" type="radio" id="cronYearRange" name="cronYear">
+							</div>
+							<label class="input-group-text" for="cronYearRange">Every year between</label>
+							<select class="form-select text-center" id="cronYearRangeStart"></select>
+							<label class="input-group-text" for="cronYearRange">and</label>
+							<select class="form-select text-center" id="cronYearRangeEnd"></select>
+						</div>
+					</div>
+					
+				</div>
+			</div>
+		</div>
+		
+	</div>
+
+</body>
+
+</html>

@@ -13,13 +13,18 @@
 	<script th:inline="javascript">
 
 		DocumentUtils.ready(() => {
-			doQuery();
+			doQuery(false);
 		});
 
-		function doQuery() {
+		function doQuery(showInfo) {
 			HttpUtils.doPost({
 				url: "qryGridScheduleRows",
-				success: renderTable
+				success: (data) => {
+					renderTable(data);
+					if(showInfo){
+						PromptUtils.success("重新載入成功");
+					}
+				}
 			});
 		}
 
@@ -41,6 +46,38 @@
 		function renderTable(data) {
 			ElementUtils.renderTable({
 				table: document.getElementById("table"),
+				captions: [{
+					side: "top",
+					text: `
+						<div class="row">
+							<div class="col text-center">
+								<span class="fs-4">排程列表</span>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col">
+								${ElementUtils.iconButtonHtml({
+									color: "outline-success",
+									icon: "plus-lg",
+									size: "sm",
+									click: "openScheduleCreate()"
+								})}
+								${ElementUtils.iconButtonHtml({
+									color: "outline-secondary",
+									icon: "arrow-repeat",
+									size: "sm",
+									click: "doQuery(true)"
+								})}
+								${ElementUtils.iconButtonHtml({
+									color: "outline-info",
+									icon: "gear-fill",
+									size: "sm",
+									click: "openGlobleParameter()"
+								})}
+							</div>
+						</div>
+					`
+				}],
 				data: data,
 				thead: [
 					{html: "排程代號", style: "width:10%"},
@@ -55,16 +92,32 @@
 					{html: "明細", clazz: "text-center", style: "width:60px"}
 				],
 				tbody: [
-					{html: "@{id}"},
-					{html: "@{name}"},
+					{html: "@{id}" , clazz: "align-middle"},
+					{html: "@{name}" , clazz: "align-middle"},
 					{html: "@{lastEndDate:date}"},
-					{parse: parseExecutedState, clazz: "text-center"},
+					{parse: parseExecutedState, clazz: "text-center align-middle"},
 					{html: "@{nextStartDate:date}"},
 					{html: "<select select-state class='form-select'></select>"},
-					{html: ElementUtils.iconButtonHtml("btn-history", "secondary", "book")},
-					{html: ElementUtils.iconButtonHtml("btn-run", "success", "play-fill")},
-					{html: ElementUtils.iconButtonHtml("btn-delete", "danger", "trash")},
-					{html: ElementUtils.iconButtonHtml("btn-detail", "primary", "search")}
+					{html: ElementUtils.iconButtonHtml({
+						color: "secondary",
+						icon: "book",
+						click: "openScheduleHistory('@{id}')"
+					})},
+					{html: ElementUtils.iconButtonHtml({
+						color: "success",
+						icon: "play-fill",
+						click: "runSchedule('@{id}', '@{name}')"
+					})},
+					{html: ElementUtils.iconButtonHtml({
+						color: "danger",
+						icon: "trash",
+						click: "deleteSchedule('@{id}', '@{name}')"
+					})},
+					{html: ElementUtils.iconButtonHtml({
+						color: "primary",
+						icon: "search",
+						click: "openScheduleDetail('@{id}')"
+					})}
 				],
 				treach: (item, $tr) => {
 
@@ -78,22 +131,6 @@
 						updateScheduleEnable(item.id, $select.value)
 					});
 
-					$tr.querySelector("[btn-history]").addEventListener("click", () => {
-						openScheduleHistory(item.id);
-					});
-
-					$tr.querySelector("[btn-run]").addEventListener("click", () => {
-						runSchedule(item.id);
-					});
-
-					$tr.querySelector("[btn-delete]").addEventListener("click", () => {
-						deleteSchedule(item.id);
-					});
-
-					$tr.querySelector("[btn-detail]").addEventListener("click", () => {
-						openScheduleDetail(item.id);
-					});
-
 				}
 			});
 		}
@@ -102,27 +139,29 @@
 			HttpUtils.doPost({
 				url: "updateScheduleEnable",
 				data: {id, state},
-				success: (data) => {
-					if (data.succeeded) {
-						PromptUtils.success(data.message);
-					} else {
-						PromptUtils.error(data.message);
-					}
+				success: () => {
+					doQuery();
 				}
 			});
 		}
 
-		function openCreateSchedule() {
+		function openScheduleCreate() {
 			DialogUtils.window({
 				title: "新增排程",
-				url: "openCreateSchedule"
+				url: "openScheduleCreate",
+				callback: () => {
+					doQuery();
+				}
 			});
 		}
 
 		function openGlobleParameter() {
 			DialogUtils.window({
 				title: "全域參數",
-				url: "openGlobleParameter"
+				url: "openGlobleParameter",
+				callback: () => {
+					doQuery();
+				}
 			});
 		}
 
@@ -130,7 +169,10 @@
 			DialogUtils.window({
 				title: "排程歷程",
 				data: {id},
-				url: "openScheduleHistory"
+				url: "openScheduleHistory",
+				callback: () => {
+					doQuery();
+				}
 			});
 		}
 
@@ -138,16 +180,43 @@
 			DialogUtils.window({
 				title: "排程明細",
 				data: {id},
-				url: "openScheduleDetail"
+				url: "openScheduleDetail",
+				callback: () => {
+					doQuery();
+				}
 			});
 		}
 
-		function deleteSchedule(id) {
-			// TODO	
+		function deleteSchedule(id, name) {
+			DialogUtils.confirm({
+				title: "刪除排程提醒",
+				text: `你確定要刪除「<font style="color:red">${id} - ${name}</font>」排程？`,
+				onConfirm: () => {
+					HttpUtils.doPost({
+						url: "deleteSchedule",
+						data: {id},
+						success: () => {
+							doQuery();
+						}
+					});
+				}
+			});
 		}
 
-		function runSchedule(id) {
-			// TODO
+		function runSchedule(id, name) {
+			DialogUtils.confirm({
+				title: "執行排程提醒",
+				text: `你確定要執行「<font style="color:red">${id} - ${name}</font>」排程？`,
+				onConfirm: () => {
+					HttpUtils.doPost({
+						url: "executeSchedule",
+						data: {id},
+						success: () => {
+							doQuery();
+						}
+					});
+				}
+			});
 		}
 
 	</script>
@@ -157,26 +226,9 @@
 
 	<div class="container-fluid">
 
-		<div class="row">
-			<div class="col">
-				<button onClick="openCreateSchedule()" type="button" class="btn btn-success m-2">
-					<i class="bi bi-plus-lg"></i>
-				</button>
-				<button onClick="openGlobleParameter()" type="button" class="btn btn-info m-2">
-					<i class="bi bi-gear-fill"></i>
-				</button>
-			</div>
-
-		</div>
-
-		<div class="row">
-			<div class="col">
-				<table id="table" class="table table-striped table-bordered table-hover">
-				</table>
-			</div>
-		</div>
+		<table id="table" class="table table-striped table-bordered table-hover"></table>
+				
 	</div>
-
 
 </body>
 

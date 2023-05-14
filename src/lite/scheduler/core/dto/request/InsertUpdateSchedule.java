@@ -6,7 +6,7 @@ import javax.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
-public class InsertSchedule {
+public class InsertUpdateSchedule {
 
 	@NotBlank
 	String id;
@@ -18,18 +18,6 @@ public class InsertSchedule {
 	String description;
 
 	@NotNull
-	Integer month;
-
-	@NotNull
-	Integer day;
-
-	@NotNull
-	Integer hour;
-
-	@NotNull
-	Integer minute;
-
-	@NotNull
-	Integer second;
+	String cronExp;
 
 }

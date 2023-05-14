@@ -14,15 +14,7 @@ public class ScheduleDetail {
 
 	String description;
 
-	Integer month;
-
-	Integer day;
-
-	Integer hour;
-
-	Integer minute;
-
-	Integer second;
+	String cronExp;
 
 	List<ScheduleParameter> scheduleParameters;
 
