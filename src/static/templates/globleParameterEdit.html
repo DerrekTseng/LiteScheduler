@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<title>Lite Scheduler</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link th:href="@{/bootstrap@5.0.2/bootstrap.min.css}" rel="stylesheet" />
+	<script th:src="@{/bootstrap@5.0.2/bootstrap.bundle.min.js}"></script>
+	<link th:href="@{/bootstrap-icons@1.9.0/bootstrap-icons.css}" rel="stylesheet" />
+	<link th:href="@{/lite-scheduler-lib.css}" rel="stylesheet" />
+	<script th:src="@{/lite-scheduler-lib.js}"></script>
+	
+	<script th:inline="javascript">
+
+		const rowid = /*[[${rowid}]]*/ "";
+
+		DocumentUtils.ready(() => {
+			doQuery();
+		});
+
+		function doQuery() {
+			HttpUtils.doPost({
+				url: "qryGlobleParameter",
+				data: {rowid: rowid},
+				success: (response) => {
+					myForm.parameterName.value = response.data.name;
+					myForm.parameterData.value = response.data.data;
+					myForm.parameterDescription.value = response.data.description;
+				},
+				error: () => {
+					PromptUtils.error("全域參數不存在");
+					DialogUtils.closeWindow(window);
+				}
+			});
+		}
+		
+		function save() {
+			let validated = myForm.checkValidity();
+			myForm.classList.add('was-validated');
+
+			if (validated) {
+				let data = {
+					rowid: rowid,
+					name: myForm.parameterName.value,
+					data: myForm.parameterData.value,
+					description: myForm.parameterDescription.value,
+				};
+				HttpUtils.doPost({
+					url: "updateGlobleParameter",
+					data: data,
+					success: (returnVal) => {
+						if (returnVal.succeeded) {
+							PromptUtils.success(returnVal.data);
+							DialogUtils.closeWindow(window);
+						} else {
+							PromptUtils.error(returnVal.data);
+						}
+					},
+					error: (response) => {
+						PromptUtils.error(response.data);
+					}
+				});
+			}
+		}
+
+	</script>
+</head>
+
+<body>
+
+	<div class="container-fluid p-3">
+		<div class="row p-3">
+			<form name="myForm">
+				<table class="table table-borderless">
+					<tr>
+						<td>
+							<div class="input-group">
+								<span class="input-group-text">參數名稱</span>
+								<input name="parameterName" type="text" class="form-control" required>
+								<div class="invalid-tooltip">
+									「參數名稱」不能為空
+								</div>
+							</div>
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<div class="input-group has-validation">
+								<span class="input-group-text">參數數值</span>
+								<input name="parameterData" type="text" class="form-control" required>
+								<div class="invalid-tooltip">
+									「參數數值」不能為空
+								</div>
+							</div>
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<div class="input-group">
+								<span class="input-group-text">參數描述</span>
+								<textarea name="parameterDescription" class="form-control"></textarea>
+							</div>
+						</td>
+					</tr>
+				</table>
+			</form>
+		</div>
+		<div class="row p-3">
+			<div class="col">
+				<button onClick="save()" type="button" class="btn btn-success float-end">
+					<i class="bi bi-save"></i>
+				</button>
+			</div>
+		</div>
+	</div>
+
+</body>
+
+</html>

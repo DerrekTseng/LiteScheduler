@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<title>Lite Scheduler</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link th:href="@{/bootstrap@5.0.2/bootstrap.min.css}" rel="stylesheet" />
+	<script th:src="@{/bootstrap@5.0.2/bootstrap.bundle.min.js}"></script>
+	<link th:href="@{/bootstrap-icons@1.9.0/bootstrap-icons.css}" rel="stylesheet" />
+	<link th:href="@{/lite-scheduler-lib.css}" rel="stylesheet" />
+	<script th:src="@{/lite-scheduler-lib.js}"></script>
+	
+	<script th:inline="javascript">
+		
+		const taskRowid = /*[[${rowid}]]*/ "";
+		
+		DocumentUtils.ready(() => {
+			doQuery();
+		});
+		
+		function doQuery(){
+			HttpUtils.doPost({
+				url : "qryTaskDetail",
+				data: {rowid: taskRowid},
+				success: (response) => {
+					ElementUtils.cronExpressionComponent({
+						div: document.getElementById("cronExp"),
+						name: "cronExp",
+						value: response.data.cronExp
+					});
+					
+					myForm.taskId.value = response.data.id;
+					myForm.taskName.value = response.data.name;
+					myForm.taskClass.value = response.data.taskClass;
+					myForm.taskDescription.value = response.data.description;
+					
+					renderParameterTable(response.data.parameters);
+				},
+				error: (response) => {
+					PromptUtils.error("工作排程不存在");
+					DialogUtils.closeWindow(window);
+				}
+			});
+		}
+		
+		function renderParameterTable(data){
+			
+			ElementUtils.renderTable({
+				table: document.getElementById("taskParameters"),
+				captions: [{
+					side: "top", 
+					text: `
+						<div class="row">
+							<div class="col text-center">
+								<span class="fs-4">工作參數</span>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col">
+								${ElementUtils.iconButtonHtml({
+									color: "outline-success",
+									icon: "plus-lg",
+									size: "sm",
+									click: "openTaskParameterCreate()"
+								})}
+							</div>
+						</div>
+					`
+				}],
+				data: data,
+				thead: [
+					{ html: "參數名稱"},
+					{ html: "參數數值"},
+					{ html: "參數描述"},
+					{ html: "刪除", clazz: "text-center", style: "width: 60px"},
+					{ html: "編輯", clazz: "text-center", style: "width: 60px"},
+				],
+				tbody: [
+					{ html: "@{name}", clazz: "align-middle" },
+					{ html: "@{data}", clazz: "align-middle" },
+					{ html: "@{description}", clazz: "align-middle" },
+					{html: ElementUtils.iconButtonHtml({
+						color: "danger",
+						icon: "trash",
+						click: "deleteTaskParameter('@{rowid}', '@{name}', '@{data}')"
+					})},
+					{html: ElementUtils.iconButtonHtml({
+						color: "success",
+						icon: "pencil-square",
+						click: "openTaskParameterEdit('@{rowid}')"
+					})}
+				]
+			});
+			
+		}
+		
+		function openTaskParameterCreate(){
+			DialogUtils.window({
+				title: "新增工作參數",
+				data: {
+					rowid: taskRowid
+				},
+				url: "openTaskParameterCreate",
+				callback: () => {
+					doQuery();
+				}
+			});
+		}
+		
+		function deleteTaskParameter(rowid, name, data){
+			DialogUtils.confirm({
+				title: "刪除工作參數提醒",
+				text: `你確定要刪除「<font style="color:red">${name} - ${data}</font>」參數？`,
+				onConfirm: () => {
+					HttpUtils.doPost({
+						url: "deleteTaskParameter",
+						data: {rowid: rowid},
+						success: (response) => {
+							PromptUtils.success(response.data);
+							doQuery();
+						},
+						error: (response) => {
+							PromptUtils.error(response.data);
+						}
+					});
+				}
+			});
+		}
+		
+		function openTaskParameterEdit(rowid){
+			DialogUtils.window({
+				title: "編輯工作參數",
+				data: {
+					rowid: rowid
+				},
+				url: "openTaskParameterEdit",
+				callback: () => {
+					doQuery();
+				}
+			});
+		}
+		
+		function save() {
+			let validated = myForm.checkValidity();
+			myForm.classList.add('was-validated');
+
+			if (validated) {
+				let data = {
+					rowid: taskRowid,
+					id: myForm.taskId.value,
+					name: myForm.taskName.value,
+					cronExp: myForm.cronExp.value,
+					taskClass: myForm.taskClass.value,
+					description: myForm.taskDescription.value
+				};
+				HttpUtils.doPost({
+					url: "updateTask",
+					data: data,
+					success: (response) => {
+						if (response.succeeded) {
+							PromptUtils.success(response.data);
+							doQuery();
+						} else {
+							PromptUtils.error(response.data);
+						}
+					}
+				});
+			}
+		}
+		
+	</script>
+</head>
+
+<body>
+
+	<div class="container-fluid p-3">
+		<div class="row p-3">
+			<form name="myForm">
+				<table class="table table-borderless">
+					<tr>
+						<td>
+							<div class="input-group">
+								<span class="input-group-text">工作代號</span>
+								<input name="taskId" type="text" class="form-control" readonly>
+							</div>
+						</td>
+						<td>
+							<div class="input-group has-validation">
+								<span class="input-group-text">工作名稱</span>
+								<input name="taskName" type="text" class="form-control" required>
+								<div class="invalid-tooltip">
+									「工作名稱」不能為空
+								</div>
+							</div>
+						</td>
+						<td style="width:50px">
+							<button type="button" class="btn btn-secondary" onclick="save()">
+								<i class="bi bi-save"></i>
+							</button>
+						</td>
+					</tr>
+					<tr>
+						<td colspan="3">
+							<div class="input-group" id="cronExp">
+								<span class="input-group-text">執行時間</span>
+							</div>
+						</td>
+					</tr>
+					<tr>
+						<td colspan="3">
+							<div class="input-group has-validation">
+								<span class="input-group-text">Task Class</span>
+								<input name="taskClass" type="text" class="form-control" required>
+								<div class="invalid-tooltip">
+									「Task Class」不能為空
+								</div>
+							</div>
+						</td>
+					</tr>
+					<tr>
+						<td colspan="3">
+							<div class="input-group">
+								<span class="input-group-text">工作描述</span>
+								<textarea name="taskDescription" class="form-control"></textarea>
+							</div>
+						</td>
+					</tr>
+					<tr>
+						<td colspan="3">
+							<table id="taskParameters" class="table table-bordered"></table>
+						</td>
+					</tr>
+				</table>
+			</form>
+		</div>
+	</div>
+
+</body>
+
+</html>

@@ -1,33 +1,27 @@
 package lite.scheduler.core.web;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import lite.scheduler.core.cmp.SchedulerManipulator;
-import lite.scheduler.core.dto.ResponseMessage;
-import lite.scheduler.core.dto.request.InsertUpdateSchedule;
-import lite.scheduler.core.dto.response.GridJobGroupRow;
-import lite.scheduler.core.dto.response.GridJobRow;
-import lite.scheduler.core.dto.response.GridScheduleRow;
-import lite.scheduler.core.dto.response.JobDetail;
-import lite.scheduler.core.dto.response.JobGroupDetail;
-import lite.scheduler.core.dto.response.ScheduleDetail;
-import lite.scheduler.core.entity.ExecutionHistory;
-import lite.scheduler.core.entity.Job;
-import lite.scheduler.core.entity.JobGroup;
-import lite.scheduler.core.entity.Schedule;
-import lite.scheduler.core.enums.ExecutionStatus;
-import lite.scheduler.core.enums.ScheduledState;
-import lite.scheduler.core.repo.JobGroupRepo;
-import lite.scheduler.core.repo.JobRepo;
-import lite.scheduler.core.repo.ScheduleRepo;
+import lite.scheduler.core.dto.request.CreateParameter;
+import lite.scheduler.core.dto.request.CreateTask;
+import lite.scheduler.core.dto.request.UpdateParameter;
+import lite.scheduler.core.dto.request.UpdateTask;
+import lite.scheduler.core.dto.response.Parameter;
+import lite.scheduler.core.dto.response.TaskDetail;
+import lite.scheduler.core.dto.response.TaskState;
+import lite.scheduler.core.entity.GlobleParameter;
+import lite.scheduler.core.entity.Task;
+import lite.scheduler.core.entity.TaskHistory;
+import lite.scheduler.core.entity.TaskParameter;
+import lite.scheduler.core.repo.GlobleParameterRepo;
+import lite.scheduler.core.repo.TaskParameterRepo;
+import lite.scheduler.core.repo.TaskRepo;
 
 @Service
 public class WebService {
@@ -36,208 +30,291 @@ public class WebService {
 	SchedulerManipulator schedulerManipulator;
 
 	@Autowired
-	ScheduleRepo scheduleRepo;
+	TaskRepo taskRepo;
 
 	@Autowired
-	JobGroupRepo jobGroupRepo;
+	GlobleParameterRepo globleParameterRepo;
 
 	@Autowired
-	JobRepo jobRepo;
+	TaskParameterRepo taskParameterRepo;
 
-	@Transactional
-	public List<GridScheduleRow> getGridScheduleRows() {
-		return scheduleRepo.findAll().stream().map(schedule -> {
-			GridScheduleRow row = new GridScheduleRow();
-			row.setId(schedule.getId());
-			row.setName(schedule.getName());
-			ExecutionHistory lastHistory = schedule.getExecutionHistories().stream().findFirst().orElse(null);
-			if (lastHistory != null) {
-				row.setLastEndDate(lastHistory.getEndDt());
-				row.setLastExecutedState(lastHistory.getExecutionStatus());
+	@Transactional(transactionManager = "core_transactionManager")
+	public List<TaskState> qryTaskStates() {
+		return taskRepo.findAll().stream().map(task -> {
+			TaskState taskState = new TaskState();
+			taskState.setRowid(task.getRowid());
+			taskState.setId(task.getId());
+			taskState.setName(task.getName());
+			taskState.setEnable(task.getEnabled());
+
+			TaskHistory taskHistory = task.getHistories().stream().findFirst().orElse(null);
+			if (taskHistory == null) {
+				taskState.setLastEndDate(null);
+				taskState.setLastExecutedResult(null);
+			} else {
+				taskState.setLastEndDate(taskHistory.getEdate());
+				taskState.setLastExecutedResult(taskHistory.getResult());
 			}
-			row.setNextStartDate(schedulerManipulator.getNextFireDate(schedule));
-			row.setState(schedule.getState());
-			return row;
+
+			taskState.setNextStartDate(schedulerManipulator.getNextFireDate(task));
+
+			return taskState;
 		}).collect(Collectors.toList());
 	}
 
-	@Transactional
-	public ScheduleDetail getScheduleDetail(String id) {
-		Schedule schedule = scheduleRepo.findById(id).orElse(null);
-		ScheduleDetail scheduleDetail = new ScheduleDetail();
-		scheduleDetail.setId(schedule.getId());
-		scheduleDetail.setName(schedule.getName());
-		scheduleDetail.setDescription(schedule.getDescription());
-		scheduleDetail.setCronExp(schedule.getCronExp());
-		scheduleDetail.setScheduleParameters(schedule.getScheduleParameters());
+	@Transactional(transactionManager = "core_transactionManager")
+	public String updateTaskEnable(Integer rowid, Boolean enable) {
+		Task task = taskRepo.findById(rowid).orElse(null);
+		if (task == null) {
+			return "「工作排程」不存在";
+		}
+		task.setEnabled(enable);
+		taskRepo.save(task);
+		schedulerManipulator.updateTask(task);
+		return null;
+	}
 
-		scheduleDetail.setGridJobGroupRows(schedule.getJobGroups().stream().map(jobGroup -> {
-			GridJobGroupRow row = new GridJobGroupRow();
-			row.setId(jobGroup.getId());
-			row.setName(jobGroup.getName());
-			row.setSequence(jobGroup.getSequence());
-			row.setState(jobGroup.getState());
-			return row;
+	@Transactional(transactionManager = "core_transactionManager")
+	public String deleteTask(Integer rowid) {
+		Task task = taskRepo.findById(rowid).orElse(null);
+		if (task == null) {
+			return "「工作排程」不存在";
+		}
+		schedulerManipulator.removeTask(task);
+		taskRepo.delete(task);
+		return null;
+	}
+
+	public String runTask(Integer rowid) {
+		Task task = taskRepo.findById(rowid).orElse(null);
+		if (task == null) {
+			return "「工作排程」不存在";
+		}
+		schedulerManipulator.fire(task);
+		return null;
+	}
+
+	@Transactional(transactionManager = "core_transactionManager")
+	public String createTask(CreateTask createTask) {
+		if (taskRepo.findAll().stream().anyMatch(task -> {
+			return task.getId().equals(createTask.getId()) || task.getName().equals(createTask.getName());
+		})) {
+			return "「工作代號」或「工作名稱」不允許重複";
+		}
+
+		Task task = new Task();
+		task.setId(createTask.getId());
+		task.setName(createTask.getName());
+		task.setCronExp(createTask.getCronExp());
+		task.setTaskClass(createTask.getTaskClass());
+		task.setDescription(createTask.getDescription());
+		task.setEnabled(false);
+		taskRepo.save(task);
+		schedulerManipulator.addTask(task);
+		return null;
+	}
+
+	@Transactional(transactionManager = "core_transactionManager")
+	public TaskDetail qryTaskDetail(Integer rowid) {
+		Task task = taskRepo.findById(rowid).orElse(null);
+		if (task == null) {
+			return null;
+		}
+		TaskDetail taskDetail = new TaskDetail();
+		taskDetail.setId(task.getId());
+		taskDetail.setName(task.getName());
+		taskDetail.setCronExp(task.getCronExp());
+		taskDetail.setTaskClass(task.getTaskClass());
+		taskDetail.setDescription(task.getDescription());
+
+		taskDetail.setParameters(task.getParameters().stream().map(p -> {
+			Parameter parameter = new Parameter();
+			parameter.setRowid(p.getRowid());
+			parameter.setName(p.getName());
+			parameter.setData(p.getData());
+			parameter.setDescription(p.getDescription());
+			return parameter;
 		}).collect(Collectors.toList()));
 
-		return scheduleDetail;
+		return taskDetail;
 	}
 
-	@Transactional
-	public JobGroupDetail getJobGroupDetail(Integer id) {
-		JobGroup jobGroup = jobGroupRepo.findById(id).orElse(null);
+	@Transactional(transactionManager = "core_transactionManager")
+	public String updateTask(UpdateTask updateTask) {
+		Task task = taskRepo.findById(updateTask.getRowid()).orElse(null);
+		if (task == null) {
+			return "「工作排程」不存在";
+		}
 
-		JobGroupDetail jobGroupDetail = new JobGroupDetail();
-		jobGroupDetail.setId(jobGroup.getId());
-		jobGroupDetail.setName(jobGroup.getName());
-		jobGroupDetail.setDescription(jobGroup.getDescription());
-		jobGroupDetail.setParameters(jobGroup.getJobGroupParameters());
-		jobGroupDetail.setJobs(jobGroup.getJobs().stream().map(job -> {
-			GridJobRow row = new GridJobRow();
-			row.setId(job.getId());
-			row.setName(job.getName());
-			row.setSequence(job.getSequence());
-			row.setState(job.getState());
-			return row;
-		}).collect(Collectors.toList()));
+		if (taskRepo.findAll().stream().anyMatch(t -> {
+			if (t.getRowid() == task.getRowid()) {
+				return false;
+			} else {
+				return t.getName().equals(updateTask.getName());
+			}
+		})) {
+			return "「工作名稱」不允許重複";
+		}
 
-		return jobGroupDetail;
+		task.setName(updateTask.getName());
+		task.setCronExp(updateTask.getCronExp());
+		task.setDescription(updateTask.getDescription());
+		task.setTaskClass(updateTask.getTaskClass());
+		taskRepo.save(task);
+		schedulerManipulator.updateTask(task);
+		return null;
 	}
 
-	@Transactional
-	public JobDetail getJobDetail(Integer id) {
-		Job job = jobRepo.findById(id).orElse(null);
-		JobDetail jobDetail = new JobDetail();
-		jobDetail.setId(job.getId());
-		jobDetail.setName(job.getName());
-		jobDetail.setDescription(job.getDescription());
-		jobDetail.setClassName(job.getClassName());
-		jobDetail.setParameters(job.getJobParameters());
-		return jobDetail;
+	@Transactional(transactionManager = "core_transactionManager")
+	public List<Parameter> qryGlobleParameter() {
+		return globleParameterRepo.findAll().stream().map(p -> {
+			Parameter parameter = new Parameter();
+			parameter.setRowid(p.getRowid());
+			parameter.setName(p.getName());
+			parameter.setData(p.getData());
+			parameter.setDescription(p.getDescription());
+			return parameter;
+		}).collect(Collectors.toList());
 	}
 
-	public ResponseMessage setScheduleEnable(String id, ScheduledState state) {
-		Schedule schedule = scheduleRepo.findById(id).orElse(null);
-		if (schedule == null) {
-			return ResponseMessage.error("排程不存在");
-		} else {
-			schedule.setState(state);
-			scheduleRepo.save(schedule);
-			schedulerManipulator.updateSchedule(schedule);
-			return ResponseMessage.success("更新成功");
+	@Transactional(transactionManager = "core_transactionManager")
+	public String createGlobleParameter(CreateParameter createParameter) {
+		if (globleParameterRepo.findAll().stream().anyMatch(p -> {
+			return p.getName().equals(createParameter.getName());
+		})) {
+			return "「參數名稱」不允許重複";
 		}
+		GlobleParameter globleParameter = new GlobleParameter();
+		globleParameter.setName(createParameter.getName());
+		globleParameter.setData(createParameter.getData());
+		globleParameter.setDescription(createParameter.getDescription());
+		globleParameterRepo.save(globleParameter);
+		return null;
 	}
 
-	public ResponseMessage doCreateSchedule(@Valid InsertUpdateSchedule insertUpdateSchedule) {
-
-		if (scheduleRepo.existsById(insertUpdateSchedule.getId())) {
-			return ResponseMessage.error("排程代號已存在");
+	@Transactional(transactionManager = "core_transactionManager")
+	public String updateGlobleParameter(UpdateParameter updateParameter) {
+		GlobleParameter globleParameter = globleParameterRepo.findById(updateParameter.getRowid()).orElse(null);
+		if (globleParameter == null) {
+			return "「全域參數」不存在";
 		}
 
-		Schedule schedule = new Schedule();
+		if (globleParameterRepo.findAll().stream().anyMatch(p -> {
+			if (globleParameter.getRowid() == p.getRowid()) {
+				return false;
+			} else {
+				return p.getName().equals(updateParameter.getName());
+			}
+		})) {
+			return "「參數名稱」不允許重複";
+		}
 
-		schedule.setId(insertUpdateSchedule.getId());
-		schedule.setName(insertUpdateSchedule.getName());
-		schedule.setDescription(insertUpdateSchedule.getDescription());
-		schedule.setState(ScheduledState.Disabled);
-		schedule.setExecutionHistories(new ArrayList<>());
-		schedule.setScheduleParameters(new ArrayList<>());
-		schedule.setJobGroups(new ArrayList<>());
-
-		schedule.setCronExp(insertUpdateSchedule.getCronExp());
-
-		scheduleRepo.save(schedule);
-		schedulerManipulator.addSchedule(schedule);
-
-		return ResponseMessage.success("新增排程成功");
+		globleParameter.setName(updateParameter.getName());
+		globleParameter.setData(updateParameter.getData());
+		globleParameter.setDescription(updateParameter.getDescription());
+		globleParameterRepo.save(globleParameter);
+		return null;
 	}
 
-	public ResponseMessage doUpdateSchedule(@Valid InsertUpdateSchedule insertUpdateSchedule) {
-
-		Schedule schedule = scheduleRepo.findById(insertUpdateSchedule.getId()).orElse(null);
-
-		if (schedule == null) {
-			return ResponseMessage.error("排程代號不存在");
+	@Transactional(transactionManager = "core_transactionManager")
+	public String deleteGlobleParameter(Integer rowid) {
+		GlobleParameter globleParameter = globleParameterRepo.findById(rowid).orElse(null);
+		if (globleParameter == null) {
+			return "「全域參數」不存在";
 		}
-
-		schedule.setName(insertUpdateSchedule.getName());
-		schedule.setDescription(insertUpdateSchedule.getDescription());
-		schedule.setCronExp(insertUpdateSchedule.getCronExp());
-		
-		scheduleRepo.save(schedule);
-		schedulerManipulator.updateSchedule(schedule);
-		
-		return ResponseMessage.success("排程更新成功");
-	}
-	
-	public ResponseMessage deleteSchedule(String id) {
-		Schedule schedule = scheduleRepo.findById(id).orElse(null);
-
-		if (schedule == null) {
-			return ResponseMessage.error("排程不存在");
-		}
-
-		ExecutionHistory lastHistory = schedule.getExecutionHistories().stream().findFirst().orElse(null);
-
-		if (lastHistory == null || lastHistory.getExecutionStatus() != ExecutionStatus.Running) {
-			schedulerManipulator.removeSchedule(schedule);
-			scheduleRepo.delete(schedule);
-			return ResponseMessage.success("刪除成功");
-		} else {
-			return ResponseMessage.error("無法刪除正在執行中的排成");
-		}
+		globleParameterRepo.delete(globleParameter);
+		return null;
 	}
 
-	public ResponseMessage executeSchedule(String id) {
-		Schedule schedule = scheduleRepo.findById(id).orElse(null);
-
-		if (schedule == null) {
-			return ResponseMessage.error("排程不存在");
+	@Transactional(transactionManager = "core_transactionManager")
+	public String createTaskParameter(CreateParameter createParameter) {
+		Task task = taskRepo.findById(createParameter.getTaskRowid()).orElse(null);
+		if (task == null) {
+			return "「工作排程」不存在";
 		}
 
-		ExecutionHistory lastHistory = schedule.getExecutionHistories().stream().findFirst().orElse(null);
-
-		if (lastHistory == null || lastHistory.getExecutionStatus() != ExecutionStatus.Running) {
-			schedulerManipulator.fire(schedule);
-			return ResponseMessage.success("請求執行成功");
-		} else {
-			return ResponseMessage.error("該排程已經在執行中");
+		if (task.getParameters().stream().anyMatch(p -> {
+			return p.getName().equals(createParameter.getName());
+		})) {
+			return "「參數名稱」不允許重複";
 		}
+
+		TaskParameter taskParameter = new TaskParameter();
+		taskParameter.setName(createParameter.getName());
+		taskParameter.setData(createParameter.getData());
+		taskParameter.setDescription(createParameter.getDescription());
+		taskParameter.setTask(task);
+		taskParameterRepo.save(taskParameter);
+		return null;
 	}
 
-	public ResponseMessage executeJobGroup(String id) {
-		JobGroup jobGroup = jobGroupRepo.findById(Integer.parseInt(id)).orElse(null);
+	@Transactional(transactionManager = "core_transactionManager")
+	public String updateTaskParameter(UpdateParameter updateParameter) {
 
-		if (jobGroup == null) {
-			return ResponseMessage.error("工作群組不存在");
+		TaskParameter taskParameter = taskParameterRepo.findById(updateParameter.getRowid()).orElse(null);
+
+		if (taskParameter == null) {
+			return "「排程參數」不存在";
 		}
 
-		Schedule schedule = jobGroup.getSchedule();
-		ExecutionHistory lastHistory = schedule.getExecutionHistories().stream().findFirst().orElse(null);
-		if (lastHistory == null || lastHistory.getExecutionStatus() != ExecutionStatus.Running) {
-			schedulerManipulator.fire(jobGroup);
-			return ResponseMessage.success("請求執行成功");
-		} else {
-			return ResponseMessage.error("該排程已經在執行中");
+		if (taskParameter.getTask().getParameters().stream().anyMatch(p -> {
+			if (updateParameter.getRowid() == p.getRowid()) {
+				return false;
+			} else {
+				return p.getName().equals(updateParameter.getName());
+			}
+
+		})) {
+			return "「參數名稱」不允許重複";
 		}
+
+		taskParameter.setName(updateParameter.getName());
+		taskParameter.setData(updateParameter.getData());
+		taskParameter.setDescription(updateParameter.getDescription());
+		taskParameterRepo.save(taskParameter);
+		return null;
 	}
 
-	public ResponseMessage executeJob(String id) {
-		Job job = jobRepo.findById(Integer.parseInt(id)).orElse(null);
+	@Transactional(transactionManager = "core_transactionManager")
+	public String deleteTaskParameter(Integer rowid) {
+		TaskParameter taskParameter = taskParameterRepo.findById(rowid).orElse(null);
+		if (taskParameter == null) {
+			return "「排程參數」不存在";
+		}
+		taskParameterRepo.delete(taskParameter);
+		return null;
+	}
 
-		if (job == null) {
-			return ResponseMessage.error("工作不存在");
+	@Transactional(transactionManager = "core_transactionManager")
+	public Parameter qryGlobleParameter(Integer rowid) {
+		GlobleParameter globleParameter = globleParameterRepo.findById(rowid).orElse(null);
+		if (globleParameter == null) {
+			return null;
 		}
 
-		Schedule schedule = job.getJobGroup().getSchedule();
+		Parameter parameter = new Parameter();
+		parameter.setRowid(globleParameter.getRowid());
+		parameter.setName(globleParameter.getName());
+		parameter.setData(globleParameter.getData());
+		parameter.setDescription(globleParameter.getDescription());
 
-		ExecutionHistory lastHistory = schedule.getExecutionHistories().stream().findFirst().orElse(null);
-		if (lastHistory == null || lastHistory.getExecutionStatus() != ExecutionStatus.Running) {
-			schedulerManipulator.fire(job);
-			return ResponseMessage.success("請求執行成功");
-		} else {
-			return ResponseMessage.error("該排程已經在執行中");
+		return parameter;
+	}
+
+	@Transactional(transactionManager = "core_transactionManager")
+	public Parameter qryTaskParameter(Integer rowid) {
+		TaskParameter taskParameter = taskParameterRepo.findById(rowid).orElse(null);
+		if (taskParameter == null) {
+			return null;
 		}
+
+		Parameter parameter = new Parameter();
+		parameter.setRowid(taskParameter.getRowid());
+		parameter.setName(taskParameter.getName());
+		parameter.setData(taskParameter.getData());
+		parameter.setDescription(taskParameter.getDescription());
+
+		return parameter;
 	}
 
 }

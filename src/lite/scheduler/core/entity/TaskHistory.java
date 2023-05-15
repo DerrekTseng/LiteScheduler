@@ -1,5 +1,7 @@
 package lite.scheduler.core.entity;
 
+import java.util.Date;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -10,6 +12,7 @@ import javax.persistence.Table;
 
 import org.hibernate.annotations.Type;
 
+import lite.scheduler.core.cmp.ExecutionResult;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -17,22 +20,27 @@ import lombok.experimental.Accessors;
 @Table
 @Entity
 @Accessors(chain = true)
-public class JobParameter {
+public class TaskHistory {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.SEQUENCE)
-	Integer id;
+	Integer rowid;
 
 	@Type(type = "text")
-	String name;
+	String parameter;
 
 	@Type(type = "text")
-	String data;
-
-	@ManyToOne
-	Job job;
+	String message;
 
 	@Column(nullable = false)
-	Boolean enabled;
+	ExecutionResult result;
+
+	@Column(nullable = false)
+	Date sdate;
+
+	Date edate;
+
+	@ManyToOne
+	Task task;
 
 }

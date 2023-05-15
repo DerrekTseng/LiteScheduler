@@ -19,14 +19,14 @@ public class ModularTransactionManager {
 	AtomicInteger transactionIndex = new AtomicInteger(0);
 
 	final List<Entry<String, PlatformTransactionManager>> transactionManagers;
-	final ScheduleJob scheduleJob;
+	final ScheduleTask scheduleTask;
 
-	ModularTransactionManager(Map<String, PlatformTransactionManager> transactionManagers, ScheduleJob scheduleJob) {
+	ModularTransactionManager(Map<String, PlatformTransactionManager> transactionManagers, ScheduleTask scheduleTask) {
 		this.transactionManagers = transactionManagers.entrySet().stream().collect(Collectors.toList());
-		this.scheduleJob = scheduleJob;
+		this.scheduleTask = scheduleTask;
 	}
 
-	public void execute(ExecuteParamenter executeParamenter, MessageWriter messageWriter) throws Exception {
+	public void execute(ExecuteParamenter parameter, MessageWriter messageWriter) throws Exception {
 
 		if (transactionManagers.size() > transactionIndex.get()) {
 			int index = transactionIndex.getAndAdd(1);
@@ -38,7 +38,7 @@ public class ModularTransactionManager {
 			definition.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
 			TransactionStatus status = transactionManager.getTransaction(definition);
 			try {
-				execute(executeParamenter, messageWriter);
+				execute(parameter, messageWriter);
 				log.debug("Commit transaction: {}", name);
 				transactionManager.commit(status);
 			} catch (Exception e) {
@@ -48,7 +48,7 @@ public class ModularTransactionManager {
 			}
 
 		} else {
-			scheduleJob.execute(executeParamenter, messageWriter);
+			scheduleTask.execute(parameter, messageWriter);
 		}
 	}
 

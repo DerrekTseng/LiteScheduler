@@ -6,9 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import lite.scheduler.core.entity.GlobleParameter;
-import lite.scheduler.core.entity.JobGroupParameter;
-import lite.scheduler.core.entity.JobParameter;
-import lite.scheduler.core.entity.ScheduleParameter;
+import lite.scheduler.core.entity.TaskParameter;
 import lombok.Getter;
 import lombok.ToString;
 
@@ -17,52 +15,26 @@ import lombok.ToString;
 public class ExecuteParamenter {
 
 	private final Map<String, String> globleParameter;
-	private final Map<String, String> scheduleParameter;
-	private final Map<String, String> jobGroupParameter;
-	private final Map<String, String> jobParameter;
+	private final Map<String, String> taskParameter;
 
-	ExecuteParamenter(List<GlobleParameter> globleParameters, List<ScheduleParameter> scheduleParameters, List<JobGroupParameter> jobGroupParameters, List<JobParameter> jobParameters) {
+	ExecuteParamenter(List<GlobleParameter> globleParameters, List<TaskParameter> taskParameters) {
 
 		Map<String, String> _globleParameter = new HashMap<>();
-		globleParameters.stream().filter(param -> {
-			return param.getEnabled();
-		}).forEach(p -> {
+		globleParameters.stream().forEach(p -> {
 			String name = p.getName();
 			String data = p.getData();
 			_globleParameter.put(name, data);
 		});
 
-		Map<String, String> _scheduleParameter = new HashMap<>();
-		scheduleParameters.stream().filter(param -> {
-			return param.getEnabled();
-		}).forEach(p -> {
+		Map<String, String> _taskParameter = new HashMap<>();
+		taskParameters.stream().forEach(p -> {
 			String name = p.getName();
 			String data = p.getData();
-			_scheduleParameter.put(name, data);
-		});
-
-		Map<String, String> _jobGroupParameter = new HashMap<>();
-		jobGroupParameters.stream().filter(param -> {
-			return param.getEnabled();
-		}).forEach(p -> {
-			String name = p.getName();
-			String data = p.getData();
-			_jobGroupParameter.put(name, data);
-		});
-
-		Map<String, String> _jobParameter = new HashMap<>();
-		jobParameters.stream().filter(param -> {
-			return param.getEnabled();
-		}).forEach(p -> {
-			String name = p.getName();
-			String data = p.getData();
-			_jobParameter.put(name, data);
+			_taskParameter.put(name, data);
 		});
 
 		this.globleParameter = Collections.unmodifiableMap(_globleParameter);
-		this.scheduleParameter = Collections.unmodifiableMap(_scheduleParameter);
-		this.jobGroupParameter = Collections.unmodifiableMap(_jobGroupParameter);
-		this.jobParameter = Collections.unmodifiableMap(_jobParameter);
+		this.taskParameter = Collections.unmodifiableMap(_taskParameter);
 	}
 
 }

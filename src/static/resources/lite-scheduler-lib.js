@@ -366,10 +366,10 @@ var PromptUtils = top.PromptUtils || {
 		PromptUtils.prompt("alert-success", msg, 1000);
 	},
 	warning: (msg) => {
-		PromptUtils.prompt("alert-warning", msg, 5000);
+		PromptUtils.prompt("alert-warning", msg, 3000);
 	},
 	error: (msg) => {
-		PromptUtils.prompt("alert-danger", msg, 8000);
+		PromptUtils.prompt("alert-danger", msg, 5000);
 	},
 	prompt: (alertClass = "", msg = "", interval = 3000) => {
 
@@ -483,11 +483,11 @@ var HttpUtils = top.HttpUtils || {
 			if (response.ok) {
 				response.json().then((responseData) => {
 					if (responseData?.succeeded == true) {
-						PromptUtils.success(responseData?.message);
+						success(responseData);
 					} else if (responseData?.succeeded == false) {
-						PromptUtils.error(responseData?.message);
+						error(responseData);
 					}
-					success(responseData, response);
+					
 				});
 			} else {
 				response.json().then((responseData) => {

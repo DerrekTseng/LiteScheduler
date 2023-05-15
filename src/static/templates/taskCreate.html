@@ -12,56 +12,44 @@
 	<script th:src="@{/lite-scheduler-lib.js}"></script>
 	
 	<script th:inline="javascript">
-	
-		const scheduleId = /*[[${id}]]*/ "";
 		
 		DocumentUtils.ready(() => {
-			doQuery();
-		});
-	
-		function doQuery() {
-			HttpUtils.doPost({
-				url: "qryScheduleDetail",
-				data: {id: scheduleId },
-				success: (data) => {
-					myForm.scheduleId.value = data.id;
-					myForm.scheduleName.value = data.name;
-					myForm.scheduleDescription.value = data.description;
-					
-					ElementUtils.cronExpressionComponent({
-						div: document.getElementById("cronExp"),
-						name: "cronExp",
-						value: data.cronExp
-					});
-				}
+			
+			ElementUtils.cronExpressionComponent({
+				div: document.getElementById("cronExp"),
+				name: "cronExp",
+				value: "0 0 0 ? * * *"
 			});
-		}
+			
+		});
 		
 		function save() {
 			let validated = myForm.checkValidity();
 			myForm.classList.add('was-validated');
 
 			if (validated) {
-				let formData = {
-					id: myForm.scheduleId.value,
-					name: myForm.scheduleName.value,
+				let data = {
+					id: myForm.taskId.value,
+					name: myForm.taskName.value,
 					cronExp: myForm.cronExp.value,
-					description: myForm.scheduleDescription.value
+					taskClass: myForm.taskClass.value,
+					description: myForm.taskDescription.value
 				};
 				HttpUtils.doPost({
-					url: "updateSchedule",
-					data: formData,
-					success: (data) => {
-						if (data.succeeded) {
-							PromptUtils.success(data.message);
+					url: "createTask",
+					data: data,
+					success: (response) => {
+						if (response.succeeded) {
+							PromptUtils.success(response.data);
 							DialogUtils.closeWindow(window);
 						} else {
-							PromptUtils.error(data.message);
+							PromptUtils.error(response.data);
 						}
 					}
 				});
 			}
 		}
+		
 		
 	</script>
 </head>
@@ -69,23 +57,25 @@
 <body>
 
 	<div class="container-fluid p-3">
-
 		<div class="row p-3">
 			<form name="myForm">
 				<table class="table table-borderless">
 					<tr>
 						<td>
 							<div class="input-group">
-								<span class="input-group-text">排程代號</span>
-								<input name="scheduleId" type="text" class="form-control" readonly>
+								<span class="input-group-text">工作代號</span>
+								<input name="taskId" type="text" class="form-control" required>
+								<div class="invalid-tooltip">
+									「工作代號」不能為空
+								</div>
 							</div>
 						</td>
 						<td>
 							<div class="input-group has-validation">
-								<span class="input-group-text">排程名稱</span>
-								<input name="scheduleName" type="text" class="form-control" required>
+								<span class="input-group-text">工作名稱</span>
+								<input name="taskName" type="text" class="form-control" required>
 								<div class="invalid-tooltip">
-									「排程名稱」不能為空
+									「工作名稱」不能為空
 								</div>
 							</div>
 						</td>
@@ -93,18 +83,26 @@
 					<tr>
 						<td colspan="2">
 							<div class="input-group" id="cronExp">
-								<span class="input-group-text">排程時間</span>
+								<span class="input-group-text">執行時間</span>
+							</div>
+						</td>
+					</tr>
+					<tr>
+						<td colspan="2">
+							<div class="input-group has-validation">
+								<span class="input-group-text">Task Class</span>
+								<input name="taskClass" type="text" class="form-control" required>
+								<div class="invalid-tooltip">
+									「Task Class」不能為空
+								</div>
 							</div>
 						</td>
 					</tr>
 					<tr>
 						<td colspan="2">
 							<div class="input-group">
-								<span class="input-group-text">排程描述</span>
-								<textarea name="scheduleDescription" class="form-control" required></textarea>
-								<div class="invalid-tooltip">
-									「排程描述」不能為空
-								</div>
+								<span class="input-group-text">工作描述</span>
+								<textarea name="taskDescription" class="form-control"></textarea>
 							</div>
 						</td>
 					</tr>

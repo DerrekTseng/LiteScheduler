@@ -8,14 +8,12 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OrderBy;
 import javax.persistence.Table;
 
 import org.hibernate.annotations.Type;
 
-import lite.scheduler.core.enums.ScheduledState;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -23,38 +21,38 @@ import lombok.experimental.Accessors;
 @Table
 @Entity
 @Accessors(chain = true)
-public class Job {
+public class Task {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.SEQUENCE)
-	Integer id;
+	Integer rowid;
+
+	@Column(unique = true, nullable = false)
+	String id;
+
+	@Column(unique = true, nullable = false)
+	String name;
 
 	@Type(type = "text")
 	@Column(nullable = false)
-	String name;
+	String cronExp;
+
+	@Type(type = "text")
+	@Column(nullable = false)
+	String taskClass;
 
 	@Type(type = "text")
 	@Column(nullable = false)
 	String description;
 
 	@Column(nullable = false)
-	Integer sequence;
+	Boolean enabled;
+	
+	@OrderBy("sdate desc")
+	@OneToMany(mappedBy = "task", cascade = CascadeType.ALL)
+	List<TaskHistory> histories;
 
-	@Column(nullable = false)
-	ScheduledState state;
-
-	@Type(type = "text")
-	@Column(nullable = false)
-	String className;
-
-	@ManyToOne
-	JobGroup jobGroup;
-
-	@OneToMany(mappedBy = "job", cascade = CascadeType.ALL)
-	List<JobParameter> jobParameters;
-
-	@OrderBy("startDt desc")
-	@OneToMany(mappedBy = "job", cascade = CascadeType.ALL)
-	List<ExecutionHistory> executionHistories;
+	@OneToMany(mappedBy = "task", cascade = CascadeType.ALL)
+	List<TaskParameter> parameters;
 
 }

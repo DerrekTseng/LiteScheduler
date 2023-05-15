@@ -7,7 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import lite.scheduler.core.entity.GlobleParameter;
 
 @Repository
-@Transactional
+@Transactional(transactionManager = "core_transactionManager")
 public interface GlobleParameterRepo extends JpaRepository<GlobleParameter, Integer> {
 
 }

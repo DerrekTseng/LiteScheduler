@@ -8,8 +8,6 @@ import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
-import org.hibernate.annotations.Type;
-
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -17,22 +15,21 @@ import lombok.experimental.Accessors;
 @Table
 @Entity
 @Accessors(chain = true)
-public class JobGroupParameter {
+public class TaskParameter {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.SEQUENCE)
-	Integer id;
-
-	@Type(type = "text")
-	String name;
-
-	@Type(type = "text")
-	String data;
-	
-	@ManyToOne
-	JobGroup jobGroup;
+	Integer rowid;
 	
 	@Column(nullable = false)
-	Boolean enabled;
+	String name;
+	
+	@Column(nullable = false)
+	String data;
+	
+	String description;
+
+	@ManyToOne
+	Task task;
 
 }

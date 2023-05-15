@@ -4,10 +4,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import lite.scheduler.core.entity.JobGroup;
+import lite.scheduler.core.entity.TaskHistory;
 
 @Repository
-@Transactional
-public interface JobGroupRepo  extends JpaRepository<JobGroup, Integer> {
+@Transactional(transactionManager = "core_transactionManager")
+public interface TaskHistoryRepo extends JpaRepository<TaskHistory, Integer>{
 
 }

@@ -19,12 +19,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import lite.scheduler.core.entity.Job;
-import lite.scheduler.core.entity.JobGroup;
-import lite.scheduler.core.entity.Schedule;
-import lite.scheduler.core.enums.ExecutionType;
-import lite.scheduler.core.enums.ScheduledState;
-import lite.scheduler.core.repo.ScheduleRepo;
+import lite.scheduler.core.entity.Task;
+import lite.scheduler.core.repo.TaskRepo;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -36,69 +32,66 @@ public class SchedulerManipulator {
 	private Scheduler scheduler;
 
 	@Autowired
-	ScheduleRepo scheduleRepo;
+	TaskRepo taskRepo;
 
-	private Trigger createTrigger(JobDetail jobDetail, String cornExp, ScheduledState state) {
-		if (StringUtils.isEmpty(cornExp) || state == ScheduledState.Disabled) {
+	private Trigger createTrigger(JobDetail jobDetail, String cornExp, Boolean enable) {
+		if (StringUtils.isEmpty(cornExp) || !enable) {
 			return TriggerBuilder.newTrigger().forJob(jobDetail).withIdentity(jobDetail.getKey().getName()).startAt(new Date(Long.MAX_VALUE)).withSchedule(SimpleScheduleBuilder.simpleSchedule()).build();
 		} else {
 			return TriggerBuilder.newTrigger().forJob(jobDetail).withIdentity(jobDetail.getKey().getName()).withSchedule(CronScheduleBuilder.cronSchedule(cornExp)).build();
 		}
 	}
 
-	@Transactional
-	public void registerSchedules() {
-		scheduleRepo.findAll().forEach(this::addSchedule);
+	@Transactional(transactionManager = "core_transactionManager")
+	public void registerTasks() {
+		taskRepo.findAll().forEach(this::addTask);
 	}
 
-	public void addSchedule(Schedule schedule) {
+	public void addTask(Task task) {
 		try {
-			log.info("Register schedule [{}][{}]", schedule.getId(), schedule.getName());
-			String id = schedule.getId();
-			String cornExp = schedule.getCronExp();
-			ScheduledState state = schedule.getState();
-			JobDetail jobDetail = JobBuilder.newJob(InternalScheduledJob.class).withIdentity(id).storeDurably(true).build();
-			Trigger trigger = createTrigger(jobDetail, cornExp, state);
+			log.info("Register task [{}][{}]", task.getId(), task.getName());
+			Integer rowid = task.getRowid();
+			String cornExp = task.getCronExp();
+			JobDetail jobDetail = JobBuilder.newJob(InternalScheduledJob.class).withIdentity(rowid.toString()).storeDurably(true).build();
+			Trigger trigger = createTrigger(jobDetail, cornExp, task.getEnabled());
 			JobDataMap jobDataMap = jobDetail.getJobDataMap();
-			jobDataMap.put("scheduleId", id);
-			jobDataMap.put("executionType", ExecutionType.Schedule);
+			jobDataMap.put("taskRowid", rowid);
 			scheduler.scheduleJob(jobDetail, trigger);
 		} catch (SchedulerException e) {
 			throw new RuntimeException(e);
 		}
 	}
 
-	public void updateSchedule(Schedule schedule) {
+	public void updateTask(Task task) {
 		try {
-			log.info("Update schedule [{}][{}]", schedule.getId(), schedule.getName());
-			String cornExp = schedule.getCronExp();
-			ScheduledState state = schedule.getState();
-			TriggerKey triggerKey = new TriggerKey(schedule.getId());
-			JobKey jobKey = new JobKey(schedule.getId());
+			log.info("Update task [{}][{}]", task.getId(), task.getName());
+			String cornExp = task.getCronExp();
+			TriggerKey triggerKey = new TriggerKey(task.getRowid().toString());
+			JobKey jobKey = new JobKey(task.getRowid().toString());
 			JobDetail jobDetail = scheduler.getJobDetail(jobKey);
-			Trigger trigger = createTrigger(jobDetail, cornExp, state);
+			Trigger trigger = createTrigger(jobDetail, cornExp, task.getEnabled());
 			scheduler.rescheduleJob(triggerKey, trigger);
 		} catch (SchedulerException e) {
 			throw new RuntimeException(e);
 		}
 	}
 
-	public void removeSchedule(Schedule schedule) {
+	public void removeTask(Task task) {
 		try {
-			log.info("Remove schedule [{}][{}]", schedule.getId(), schedule.getName());
-			JobKey jobKey = new JobKey(schedule.getId());
+			log.info("Remove schedule [{}][{}]", task.getId(), task.getName());
+			JobKey jobKey = new JobKey(task.getRowid().toString());
 			scheduler.deleteJob(jobKey);
 		} catch (SchedulerException e) {
 			throw new RuntimeException(e);
 		}
 	}
 
-	public Date getNextFireDate(Schedule schedule) {
+	public Date getNextFireDate(Task task) {
 		try {
-			if (schedule.getState() == ScheduledState.Disabled) {
+			if (!task.getEnabled()) {
 				return null;
 			} else {
-				TriggerKey triggerKey = new TriggerKey(schedule.getId());
+				TriggerKey triggerKey = new TriggerKey(task.getRowid().toString());
 				return scheduler.getTrigger(triggerKey).getNextFireTime();
 			}
 		} catch (SchedulerException e) {
@@ -106,67 +99,29 @@ public class SchedulerManipulator {
 		}
 	}
 
-	public void fire(Schedule schedule) {
+	public void fire(Task task) {
 		try {
-			log.info("Fire schedule [{}][{}]", schedule.getId(), schedule.getName());
-			String scheduleId = schedule.getId();
-			JobKey jobKey = new JobKey(scheduleId);
-			JobDataMap jobDataMap = scheduler.getJobDetail(jobKey).getJobDataMap();
-			jobDataMap.put("executionType", ExecutionType.Schedule);
-			jobDataMap.put("manualExecution", Boolean.TRUE);
+			log.info("Fire task [{}][{}]", task.getId(), task.getName());
+			Integer rowid = task.getRowid();
+			JobKey jobKey = new JobKey(rowid.toString());
+			JobDetail jobDetail = scheduler.getJobDetail(jobKey);
+			JobDataMap jobDataMap = jobDetail.getJobDataMap();
+			jobDataMap.put("manualExecute", Boolean.TRUE);
+			scheduler.addJob(jobDetail, true, true);
 			scheduler.triggerJob(jobKey);
 		} catch (SchedulerException e) {
 			throw new RuntimeException(e);
 		}
 	}
 
-	public void fire(JobGroup jobGroup) {
+	public void setManualExecute(Task task, Boolean b) {
 		try {
-			log.info("Fire group [{}][{}][{}]", jobGroup.getSchedule().getId(), jobGroup.getSchedule().getName(), jobGroup.getName());
-			String scheduleId = jobGroup.getSchedule().getId();
-			JobKey jobKey = new JobKey(scheduleId);
-			JobDataMap jobDataMap = scheduler.getJobDetail(jobKey).getJobDataMap();
-			jobDataMap.put("executionType", ExecutionType.Group);
-			jobDataMap.put("executionId", jobGroup.getId());
-			jobDataMap.put("manualExecution", Boolean.TRUE);
-			scheduler.triggerJob(jobKey);
-		} catch (SchedulerException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	public void fire(Job job) {
-		try {
-			log.info("Fire group [{}][{}][{}][{}]", job.getJobGroup().getSchedule().getId(), job.getJobGroup().getSchedule().getName(), job.getJobGroup().getName(), job.getName());
-			String scheduleId = job.getJobGroup().getSchedule().getId();
-			JobKey jobKey = new JobKey(scheduleId);
-			JobDataMap jobDataMap = scheduler.getJobDetail(jobKey).getJobDataMap();
-			jobDataMap.put("executionType", ExecutionType.Job);
-			jobDataMap.put("executionId", job.getId());
-			jobDataMap.put("manualExecution", Boolean.TRUE);
-			scheduler.triggerJob(jobKey);
-		} catch (SchedulerException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	public void setExecutionType(Schedule schedule, ExecutionType executionType) {
-		try {
-			String scheduleId = schedule.getId();
-			JobKey jobKey = new JobKey(scheduleId);
-			JobDataMap jobDataMap = scheduler.getJobDetail(jobKey).getJobDataMap();
-			jobDataMap.put("executionType", executionType);
-		} catch (SchedulerException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	public void setManualExecution(Schedule schedule, Boolean b) {
-		try {
-			String scheduleId = schedule.getId();
-			JobKey jobKey = new JobKey(scheduleId);
-			JobDataMap jobDataMap = scheduler.getJobDetail(jobKey).getJobDataMap();
-			jobDataMap.put("manualExecution", b);
+			Integer rowid = task.getRowid();
+			JobKey jobKey = new JobKey(rowid.toString());
+			JobDetail jobDetail = scheduler.getJobDetail(jobKey);
+			JobDataMap jobDataMap = jobDetail.getJobDataMap();
+			jobDataMap.put("manualExecute", b);
+			scheduler.addJob(jobDetail, true, true);
 		} catch (SchedulerException e) {
 			throw new RuntimeException(e);
 		}

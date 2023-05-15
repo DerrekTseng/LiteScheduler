@@ -4,80 +4,182 @@ import java.util.List;
 
 import javax.validation.Valid;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 
-import lite.scheduler.core.dto.RequestID;
-import lite.scheduler.core.dto.ResponseMessage;
-import lite.scheduler.core.dto.request.InsertUpdateSchedule;
-import lite.scheduler.core.dto.request.UpdateScheduleEnable;
-import lite.scheduler.core.dto.response.GridScheduleRow;
-import lite.scheduler.core.dto.response.ScheduleDetail;
+import lite.scheduler.core.dto.RequestRowid;
+import lite.scheduler.core.dto.ResponseBean;
+import lite.scheduler.core.dto.request.CreateParameter;
+import lite.scheduler.core.dto.request.CreateTask;
+import lite.scheduler.core.dto.request.TaskEnable;
+import lite.scheduler.core.dto.request.UpdateParameter;
+import lite.scheduler.core.dto.request.UpdateTask;
+import lite.scheduler.core.dto.response.Parameter;
+import lite.scheduler.core.dto.response.TaskDetail;
+import lite.scheduler.core.dto.response.TaskState;
 
-@Controller
-@RequestMapping
+@RestController
+@RequestMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 public class WebActionController {
 
 	@Autowired
-	WebService service;
+	WebService webService;
 
-	@ResponseBody
-	@PostMapping(value = "qryGridScheduleRows", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public List<GridScheduleRow> qryGridScheduleRows() {
-		return service.getGridScheduleRows();
+	@PostMapping("qryTaskStates")
+	public ResponseBean<List<TaskState>> qryTaskStates() {
+		List<TaskState> taskStates = webService.qryTaskStates();
+		return ResponseBean.success(taskStates);
 	}
 
-	@ResponseBody
-	@PostMapping(value = "updateScheduleEnable", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseMessage updateScheduleEnable(@Valid @RequestBody UpdateScheduleEnable updateScheduleEnable) {
-		return service.setScheduleEnable(updateScheduleEnable.getId(), updateScheduleEnable.getState());
+	@PostMapping("qryGlobleParameters")
+	public ResponseBean<List<Parameter>> qryGlobleParameters() {
+		List<Parameter> parameters = webService.qryGlobleParameter();
+		return ResponseBean.success(parameters);
 	}
 
-	@ResponseBody
-	@PostMapping(value = "qryScheduleDetail", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ScheduleDetail qryScheduleDetail(@Valid @RequestBody RequestID requestID) {
-		return service.getScheduleDetail(requestID.getId());
+	@PostMapping("createGlobleParameter")
+	public ResponseBean<String> createGlobleParameter(@Valid @RequestBody CreateParameter createParameter) {
+		String result = webService.createGlobleParameter(createParameter);
+		if (StringUtils.isEmpty(result)) {
+			return ResponseBean.success("新增成功");
+		} else {
+			return ResponseBean.error(result);
+		}
 	}
 
-	@ResponseBody
-	@PostMapping(value = "insertSchedule", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseMessage insertUpdateSchedule(@Valid @RequestBody InsertUpdateSchedule insertUpdateSchedule) {
-		return service.doCreateSchedule(insertUpdateSchedule);
+	@PostMapping("qryGlobleParameter")
+	public ResponseBean<Parameter> qryGlobleParameter(@Valid @RequestBody RequestRowid requestRowid) {
+		Parameter parameter = webService.qryGlobleParameter(requestRowid.getRowid());
+		if (parameter != null) {
+			return ResponseBean.success(parameter);
+		} else {
+			return ResponseBean.error(null);
+		}
+	}
+
+	@PostMapping("updateGlobleParameter")
+	public ResponseBean<String> updateGlobleParameter(@Valid @RequestBody UpdateParameter updateParameter) {
+		String result = webService.updateGlobleParameter(updateParameter);
+		if (StringUtils.isEmpty(result)) {
+			return ResponseBean.success("更新成功");
+		} else {
+			return ResponseBean.error(result);
+		}
+	}
+
+	@PostMapping("deleteGlobleParameter")
+	public ResponseBean<String> deleteGlobleParameter(@Valid @RequestBody RequestRowid requestRowid) {
+		String result = webService.deleteGlobleParameter(requestRowid.getRowid());
+		if (StringUtils.isEmpty(result)) {
+			return ResponseBean.success("刪除成功");
+		} else {
+			return ResponseBean.error(result);
+		}
+	}
+
+	@PostMapping("updateTaskEnable")
+	public ResponseBean<String> updateTaskEnable(@Valid @RequestBody TaskEnable taskEnable) {
+		String result = webService.updateTaskEnable(taskEnable.getRowid(), taskEnable.getEnable());
+		if (StringUtils.isEmpty(result)) {
+			return ResponseBean.success("更新成功");
+		} else {
+			return ResponseBean.error(result);
+		}
+	}
+
+	@PostMapping("deleteTask")
+	public ResponseBean<String> deleteTask(@Valid @RequestBody RequestRowid requestRowid) {
+		String result = webService.deleteTask(requestRowid.getRowid());
+		if (StringUtils.isEmpty(result)) {
+			return ResponseBean.success("刪除成功");
+		} else {
+			return ResponseBean.error(result);
+		}
+	}
+
+	@PostMapping("runTask")
+	public ResponseBean<String> runTask(@Valid @RequestBody RequestRowid requestRowid) {
+		String result = webService.runTask(requestRowid.getRowid());
+		if (StringUtils.isEmpty(result)) {
+			return ResponseBean.success("執行成功");
+		} else {
+			return ResponseBean.error(result);
+		}
+	}
+
+	@PostMapping("createTask")
+	public ResponseBean<String> createTask(@Valid @RequestBody CreateTask createTask) {
+		String result = webService.createTask(createTask);
+		if (StringUtils.isEmpty(result)) {
+			return ResponseBean.success("建立成功");
+		} else {
+			return ResponseBean.error(result);
+		}
+	}
+
+	@PostMapping("qryTaskDetail")
+	public ResponseBean<TaskDetail> qryTaskDetail(@Valid @RequestBody RequestRowid requestRowid) {
+		TaskDetail taskDetail = webService.qryTaskDetail(requestRowid.getRowid());
+		if (taskDetail == null) {
+			return ResponseBean.error(null);
+		} else {
+			return ResponseBean.success(taskDetail);
+		}
+	}
+
+	@PostMapping("updateTask")
+	public ResponseBean<String> updateTask(@Valid @RequestBody UpdateTask updateTask) {
+		String result = webService.updateTask(updateTask);
+		if (StringUtils.isEmpty(result)) {
+			return ResponseBean.success("更新成功");
+		} else {
+			return ResponseBean.error(result);
+		}
+	}
+
+	@PostMapping("deleteTaskParameter")
+	public ResponseBean<String> deleteTaskParameter(@Valid @RequestBody RequestRowid requestRowid) {
+		String result = webService.deleteTaskParameter(requestRowid.getRowid());
+		if (StringUtils.isEmpty(result)) {
+			return ResponseBean.success("刪除成功");
+		} else {
+			return ResponseBean.error(result);
+		}
+	}
+
+	@PostMapping("createTaskParameter")
+	public ResponseBean<String> createTaskParameter(@Valid @RequestBody CreateParameter createParameter) {
+		String result = webService.createTaskParameter(createParameter);
+		if (StringUtils.isEmpty(result)) {
+			return ResponseBean.success("新增成功");
+		} else {
+			return ResponseBean.error(result);
+		}
 	}
 	
-	@ResponseBody
-	@PostMapping(value = "updateSchedule", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseMessage updateSchedule(@Valid @RequestBody InsertUpdateSchedule insertUpdateSchedule) {
-		return service.doUpdateSchedule(insertUpdateSchedule);
+	@PostMapping("qryTaskParameter")
+	public ResponseBean<Parameter> qryTaskParameter(@Valid @RequestBody RequestRowid requestRowid) {
+		Parameter parameter = webService.qryTaskParameter(requestRowid.getRowid());
+		if (parameter != null) {
+			return ResponseBean.success(parameter);
+		} else {
+			return ResponseBean.error(null);
+		}
 	}
 
-	@ResponseBody
-	@PostMapping(value = "deleteSchedule", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseMessage deleteSchedule(@Valid @RequestBody RequestID requestID) {
-		return service.deleteSchedule(requestID.getId());
-	}
-
-	@ResponseBody
-	@PostMapping(value = "executeSchedule", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseMessage executeSchedule(@Valid @RequestBody RequestID requestID) {
-		return service.executeSchedule(requestID.getId());
-	}
-
-	@ResponseBody
-	@PostMapping(value = "executeJobGroup", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseMessage executeJobGroup(@Valid @RequestBody RequestID requestID) {
-		return service.executeJobGroup(requestID.getId());
-	}
-
-	@ResponseBody
-	@PostMapping(value = "executeJob", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseMessage executeJob(@Valid @RequestBody RequestID requestID) {
-		return service.executeJob(requestID.getId());
+	@PostMapping("updateTaskParameter")
+	public ResponseBean<String> updateTaskParameter(@Valid @RequestBody UpdateParameter updateParameter) {
+		String result = webService.updateTaskParameter(updateParameter);
+		if (StringUtils.isEmpty(result)) {
+			return ResponseBean.success("更新成功");
+		} else {
+			return ResponseBean.error(result);
+		}
 	}
 
 }

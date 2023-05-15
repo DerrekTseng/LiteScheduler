@@ -20,14 +20,16 @@ public class GlobleParameter {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.SEQUENCE)
-	Integer id;
+	Integer rowid;
 
-	@Type(type = "text")
+	@Column(unique = true, nullable = false)
 	String name;
 
 	@Type(type = "text")
-	String data;
-	
 	@Column(nullable = false)
-	Boolean enabled;
+	String data;
+
+	@Type(type = "text")
+	String description;
+
 }

@@ -13,14 +13,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.event.EventListener;
-import org.springframework.core.convert.converter.Converter;
-import org.springframework.format.FormatterRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+import lite.scheduler.core.cmp.ExecutionResult;
 import lite.scheduler.core.cmp.SchedulerManipulator;
-import lite.scheduler.core.enums.ExecutionStatus;
-import lite.scheduler.core.enums.ScheduledState;
-import lite.scheduler.core.repo.ExecutionHistoryRepo;
+import lite.scheduler.core.repo.TaskHistoryRepo;
 
 @Configuration
 public class CoreConfiguration implements WebMvcConfigurer {
@@ -31,7 +28,7 @@ public class CoreConfiguration implements WebMvcConfigurer {
 	ApplicationContext context;
 
 	@Autowired
-	ExecutionHistoryRepo executionHistoryRepo;
+	TaskHistoryRepo taskHistoryRepo;
 
 	@Autowired
 	@Qualifier("quartzSchedulerThreadSize")
@@ -40,29 +37,15 @@ public class CoreConfiguration implements WebMvcConfigurer {
 	@EventListener(ApplicationReadyEvent.class)
 	void afterStartup() {
 		staticContext = context;
-		executionHistoryRepo.findAll().stream().filter(executionHistory -> {
-			return executionHistory.getExecutionStatus() == ExecutionStatus.Running;
-		}).forEach(executionHistory -> {
-			executionHistory.setExecutionStatus(ExecutionStatus.Terminated);
-			executionHistoryRepo.save(executionHistory);
+		taskHistoryRepo.findAll().stream().filter(history -> {
+			return history.getResult() == ExecutionResult.Running;
+		}).forEach(history -> {
+			history.setResult(ExecutionResult.Terminated);
+			taskHistoryRepo.save(history);
 		});
 
 		SchedulerManipulator schedulerManipulator = staticContext.getBean(SchedulerManipulator.class);
-		schedulerManipulator.registerSchedules();
-	}
-
-	@Override
-	public void addFormatters(FormatterRegistry registry) {
-		registry.addConverter(new Converter<String, ScheduledState>() {
-			@Override
-			public ScheduledState convert(String source) {
-				try {
-					return ScheduledState.valueOf(source);
-				} catch (IllegalArgumentException e) {
-					return null;
-				}
-			}
-		});
+		schedulerManipulator.registerTasks();
 	}
 
 	@Bean

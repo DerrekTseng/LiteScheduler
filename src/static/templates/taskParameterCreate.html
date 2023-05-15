@@ -11,88 +11,74 @@
 	<link th:href="@{/lite-scheduler-lib.css}" rel="stylesheet" />
 	<script th:src="@{/lite-scheduler-lib.js}"></script>
 	<script th:inline="javascript">
-
-		DocumentUtils.ready(() => {
-
-			ElementUtils.cronExpressionComponent({
-				div: document.getElementById("cronExp"),
-				name: "cronExp",
-				value: "* * * ? * * *"
-			});
-			
-		});
-
-
+		
+		const taskRowid = /*[[${rowid}]]*/ "";
+		
 		function save() {
 			let validated = myForm.checkValidity();
 			myForm.classList.add('was-validated');
 
 			if (validated) {
-				let formData = {
-					id: myForm.scheduleId.value,
-					name: myForm.scheduleName.value,
-					cronExp: myForm.cronExp.value,
-					description: myForm.scheduleDescription.value
+				let data = {
+					taskRowid: taskRowid,
+					name: myForm.parameterName.value,
+					data: myForm.parameterData.value,
+					description: myForm.parameterDescription.value,
 				};
 				HttpUtils.doPost({
-					url: "insertSchedule",
-					data: formData,
-					success: (data) => {
-						if (data.succeeded) {
-							PromptUtils.success(data.message);
+					url: "createTaskParameter",
+					data: data,
+					success: (returnVal) => {
+						if (returnVal.succeeded) {
+							PromptUtils.success(returnVal.data);
 							DialogUtils.closeWindow(window);
 						} else {
-							PromptUtils.error(data.message);
+							PromptUtils.error(returnVal.data);
 						}
+					},
+					error: (response) => {
+						PromptUtils.error(response.data);
 					}
 				});
 			}
 		}
+		
 	</script>
 </head>
 
 <body>
 
 	<div class="container-fluid p-3">
-
 		<div class="row p-3">
 			<form name="myForm">
 				<table class="table table-borderless">
 					<tr>
 						<td>
 							<div class="input-group">
-								<span class="input-group-text">排程代號</span>
-								<input name="scheduleId" type="text" class="form-control" required>
+								<span class="input-group-text">參數名稱</span>
+								<input name="parameterName" type="text" class="form-control" required>
 								<div class="invalid-tooltip">
-									「排程代號」不能為空
+									「參數名稱」不能為空
 								</div>
 							</div>
 						</td>
+					</tr>
+					<tr>
 						<td>
 							<div class="input-group has-validation">
-								<span class="input-group-text">排程名稱</span>
-								<input name="scheduleName" type="text" class="form-control" required>
+								<span class="input-group-text">參數數值</span>
+								<input name="parameterData" type="text" class="form-control" required>
 								<div class="invalid-tooltip">
-									「排程名稱」不能為空
+									「參數數值」不能為空
 								</div>
 							</div>
 						</td>
 					</tr>
 					<tr>
-						<td colspan="2">
-							<div class="input-group" id="cronExp">
-								<span class="input-group-text">排程時間</span>
-							</div>
-						</td>
-					</tr>
-					<tr>
-						<td colspan="2">
+						<td>
 							<div class="input-group">
-								<span class="input-group-text">排程描述</span>
-								<textarea name="scheduleDescription" class="form-control" required></textarea>
-								<div class="invalid-tooltip">
-									「排程描述」不能為空
-								</div>
+								<span class="input-group-text">參數描述</span>
+								<textarea name="parameterDescription" class="form-control"></textarea>
 							</div>
 						</td>
 					</tr>
