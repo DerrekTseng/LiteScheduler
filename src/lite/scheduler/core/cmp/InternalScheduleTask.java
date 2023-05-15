@@ -23,7 +23,7 @@ import lite.scheduler.core.repo.TaskRepo;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-final public class InternalScheduledJob implements Job {
+final public class InternalScheduleTask implements Job {
 
 	@Override
 	public void execute(JobExecutionContext context) throws JobExecutionException {
@@ -49,7 +49,7 @@ final public class InternalScheduledJob implements Job {
 
 			Task task = taskRepo.findById(taskRowid).orElse(null);
 
-			ThreadContext.put("scheduleId", task.getId());
+			ThreadContext.put("taskId", task.getId());
 
 			List<TaskHistory> histories = task.getHistories();
 

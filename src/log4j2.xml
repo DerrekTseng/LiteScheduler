@@ -6,14 +6,14 @@
 		<Property name="date">%d{yyyy-MM-dd}</Property>
 		<Property name="destination">${sys:lite.scheduler.work.dir}/logs</Property>
 		<Property name="pattern.web">[%d{yyyy-MM-dd HH:mm:ss.SSS}] [%p] (%F:%M:%L) - %m%n</Property>
-		<Property name="pattern.scheduler">[%d{yyy-MM-dd HH:mm:ss.SSS}] [%p] [%X{scheduleId}] (%F:%M:%L) - %m%n</Property>
+		<Property name="pattern.scheduler">[%d{yyy-MM-dd HH:mm:ss.SSS}] [%p] [%X{taskId}] (%F:%M:%L) - %m%n</Property>
 	</Properties>
 
 	<Appenders>
 	
 		<Routing name="ConsoleLogRouting">
-			<Routes pattern="${ctx:scheduleId}">
-				<Route key="${ctx:scheduleId}"> <!-- 當key有值時 因為沒有設定 RoutingInit 所以不會使用此 Route 的 Appender -->
+			<Routes pattern="${ctx:taskId}">
+				<Route key="${ctx:taskId}"> <!-- 當key有值時 因為沒有設定 RoutingInit 所以不會使用此 Route 的 Appender -->
 					<Console name="WebConsoleLogRouting" target="SYSTEM_OUT">
 						<PatternLayout>
 							<Pattern>${pattern.web}</Pattern>
@@ -31,8 +31,8 @@
 		</Routing>
 		
 		<Routing name="FileLogRouting">
-			<Routes pattern="${ctx:scheduleId}">
-				<Route key="${ctx:scheduleId}"> <!-- 當key有值時 因為沒有設定 RoutingInit 所以不會使用此 Route 的 Appender -->
+			<Routes pattern="${ctx:taskId}">
+				<Route key="${ctx:taskId}"> <!-- 當key有值時 因為沒有設定 RoutingInit 所以不會使用此 Route 的 Appender -->
 					<RollingFile name="WebFileLogRouting"
 						immediateFlush="true"
 						fileName="${destination}/${project}.log"
@@ -53,8 +53,8 @@
 				<Route>
 					<RollingFile name="SchedulerFileLogRouting" 
 						immediateFlush="true"
-						fileName="${destination}/scheduler/${ctx:scheduleId}.log" 
-						filePattern="${destination}/scheduler/${ctx:scheduleId}.${date}.log">
+						fileName="${destination}/scheduler/${ctx:taskId}.log" 
+						filePattern="${destination}/scheduler/${ctx:taskId}.${date}.log">
 						<PatternLayout>
 							<Pattern>${pattern.scheduler}</Pattern>
 						</PatternLayout>

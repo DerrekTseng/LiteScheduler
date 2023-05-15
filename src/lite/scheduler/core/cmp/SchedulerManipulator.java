@@ -52,7 +52,7 @@ public class SchedulerManipulator {
 			log.info("Register task [{}][{}]", task.getId(), task.getName());
 			Integer rowid = task.getRowid();
 			String cornExp = task.getCronExp();
-			JobDetail jobDetail = JobBuilder.newJob(InternalScheduledJob.class).withIdentity(rowid.toString()).storeDurably(true).build();
+			JobDetail jobDetail = JobBuilder.newJob(InternalScheduleTask.class).withIdentity(rowid.toString()).storeDurably(true).build();
 			Trigger trigger = createTrigger(jobDetail, cornExp, task.getEnabled());
 			JobDataMap jobDataMap = jobDetail.getJobDataMap();
 			jobDataMap.put("taskRowid", rowid);
