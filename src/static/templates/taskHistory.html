@@ -13,14 +13,84 @@
 	
 	<script th:inline="javascript">
 		
-		const rowid = /*[[${rowid}]]*/ "";
+		const taskRowid = /*[[${rowid}]]*/ "";
 		
 		DocumentUtils.ready(() => {
-			alert(rowid);
+			doQuery();
 		});
 		
 		function doQuery(){
-			
+			HttpUtils.doPost({
+				url: "qryTaskHistoryStates",
+				data: {rowid: taskRowid},
+				success: (response) => {
+					renderTable(response.data);
+				}
+			});
+		}
+		
+		function parseExecutedResult(data) {
+			switch (data.result) {
+				case 'Running':
+					return "執行中";
+				case 'Succeeded':
+					return "成功";
+				case 'Failed':
+					return "失敗";
+				case 'Terminated':
+					return "被終止";
+				default:
+					return "";
+			}
+		}
+		
+		function renderTable(data){
+			ElementUtils.renderTable({
+				table: document.getElementById("table"),
+				data: data,
+				thead: [
+					{ html: "任務代號"},
+					{ html: "任務名稱"},
+					{ html: "開始時間"},
+					{ html: "結束時間"},
+					{ html: "執行結果", clazz: "text-center", style: "width:82px"},
+					{ html: "參數", clazz: "text-center", style: "width:60px"},
+					{ html: "訊息", clazz: "text-center", style: "width:60px"},
+				],
+				tbody: [
+					{ html: "@{taskId}"},
+					{ html: "@{taskName}"},
+					{ html: "@{sdate:date}"},
+					{ html: "@{edate:date}"},
+					{ parse: parseExecutedResult, clazz: "text-center"},
+					{ html: ElementUtils.iconButtonHtml({
+						color: "secondary",
+						icon: "gear-fill",
+						click: "openTaskHistoryParameter('@{rowid}')"
+					})},
+					{ html: ElementUtils.iconButtonHtml({
+						color: "secondary",
+						icon: "chat-square-text",
+						click: "openTaskHistoryMessage('@{rowid}')"
+					})}
+				]
+			});
+		}
+		
+		function openTaskHistoryParameter(rowid){
+			DialogUtils.window({
+				title: "執行參數",
+				data: {rowid},
+				url: "openTaskHistoryParameter"
+			});
+		}
+		
+		function openTaskHistoryMessage(rowid){
+			DialogUtils.window({
+				title: "執行訊息",
+				data: {rowid},
+				url: "openTaskHistoryMessage"
+			});
 		}
 		
 	</script>
@@ -29,7 +99,7 @@
 <body>
 
 	<div class="container-fluid p-3">
-		
+		<table id="table" class="table table-striped table-bordered table-hover align-middle"></table>
 	</div>
 
 </body>

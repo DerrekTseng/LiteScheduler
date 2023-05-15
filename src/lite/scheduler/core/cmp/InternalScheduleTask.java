@@ -13,6 +13,8 @@ import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import lite.scheduler.core.CoreConfiguration;
 import lite.scheduler.core.entity.GlobleParameter;
 import lite.scheduler.core.entity.Task;
@@ -24,6 +26,8 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 final public class InternalScheduleTask implements Job {
+
+	private static final ObjectMapper mapper = new ObjectMapper();
 
 	@Override
 	public void execute(JobExecutionContext context) throws JobExecutionException {
@@ -71,15 +75,11 @@ final public class InternalScheduleTask implements Job {
 
 			List<GlobleParameter> globleParameters = globleParameterRepo.findAll();
 
-			ExecuteParamenter executeParamenter = new ExecuteParamenter(globleParameters, task.getParameters());
+			ExecuteParamenter executeParamenter = new ExecuteParamenter();
+			executeParamenter.readGlobleParameters(globleParameters);
+			executeParamenter.readTaskParameters(task.getParameters());
 
 			TaskHistory taskHistory = new TaskHistory();
-			taskHistory.setTask(task);
-			taskHistory.setMessage("");
-			taskHistory.setParameter(executeParamenter.toString());
-			taskHistory.setResult(ExecutionResult.Running);
-			taskHistory.setSdate(new Date());
-			saveHistory(taskHistory, transactionManager, taskHistoryRepo);
 
 			MessageWriter messageWriter = new MessageWriter((line) -> {
 				log.info(line);
@@ -88,6 +88,15 @@ final public class InternalScheduleTask implements Job {
 			});
 
 			try {
+
+				taskHistory.setTask(task);
+				taskHistory.setMessage("");
+
+				taskHistory.setParameter(mapper.writeValueAsString(executeParamenter));
+				taskHistory.setResult(ExecutionResult.Running);
+				taskHistory.setSdate(new Date());
+				saveHistory(taskHistory, transactionManager, taskHistoryRepo);
+
 				Class<?> taskClass = Class.forName(task.getTaskClass());
 				ScheduleTask scheduleTask = (ScheduleTask) applicationContext.getBean(taskClass);
 				scheduleTask.internalExecute(executeParamenter, messageWriter);

@@ -12,6 +12,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+
 import lite.scheduler.core.dto.RequestRowid;
 import lite.scheduler.core.dto.ResponseBean;
 import lite.scheduler.core.dto.request.CreateParameter;
@@ -19,6 +22,8 @@ import lite.scheduler.core.dto.request.CreateTask;
 import lite.scheduler.core.dto.request.TaskEnable;
 import lite.scheduler.core.dto.request.UpdateParameter;
 import lite.scheduler.core.dto.request.UpdateTask;
+import lite.scheduler.core.dto.response.HistoryParameter;
+import lite.scheduler.core.dto.response.HistoryState;
 import lite.scheduler.core.dto.response.Parameter;
 import lite.scheduler.core.dto.response.TaskDetail;
 import lite.scheduler.core.dto.response.TaskState;
@@ -161,7 +166,7 @@ public class WebActionController {
 			return ResponseBean.error(result);
 		}
 	}
-	
+
 	@PostMapping("qryTaskParameter")
 	public ResponseBean<Parameter> qryTaskParameter(@Valid @RequestBody RequestRowid requestRowid) {
 		Parameter parameter = webService.qryTaskParameter(requestRowid.getRowid());
@@ -179,6 +184,36 @@ public class WebActionController {
 			return ResponseBean.success("更新成功");
 		} else {
 			return ResponseBean.error(result);
+		}
+	}
+
+	@PostMapping("qryTaskHistoryStates")
+	public ResponseBean<List<HistoryState>> qryTaskHistoryStates(@Valid @RequestBody RequestRowid requestRowid) {
+		List<HistoryState> result = webService.qryTaskHistoryStates(requestRowid.getRowid());
+		if (result != null) {
+			return ResponseBean.success(result);
+		} else {
+			return ResponseBean.error(null);
+		}
+	}
+
+	@PostMapping("qryTaskHistoryMessage")
+	public ResponseBean<String> qryTaskHistoryMessage(@Valid @RequestBody RequestRowid requestRowid) {
+		String result = webService.qryTaskHistoryMessage(requestRowid.getRowid());
+		if (result != null) {
+			return ResponseBean.success(result);
+		} else {
+			return ResponseBean.error(null);
+		}
+	}
+
+	@PostMapping("qryTaskHistoryParameter")
+	public ResponseBean<HistoryParameter> qryTaskHistoryParameter(@Valid @RequestBody RequestRowid requestRowid) throws JsonMappingException, JsonProcessingException {
+		HistoryParameter result = webService.qryTaskHistoryParameter(requestRowid.getRowid());
+		if (result != null) {
+			return ResponseBean.success(result);
+		} else {
+			return ResponseBean.error(null);
 		}
 	}
 

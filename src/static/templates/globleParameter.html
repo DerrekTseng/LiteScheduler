@@ -53,16 +53,16 @@
 					{ html: "編輯", clazz: "text-center", style: "width: 60px"},
 				],
 				tbody: [
-					{ html: "@{name}", clazz: "align-middle" },
-					{ html: "@{data}", clazz: "align-middle" },
-					{ html: "@{description}", clazz: "align-middle" },
+					{ html: "@{name}"},
+					{ html: "@{data}"},
+					{ html: "@{description}"},
 					{html: ElementUtils.iconButtonHtml({
 						color: "danger",
 						icon: "trash",
 						click: "deleteGlobleParameter('@{rowid}', '@{name}', '@{data}')"
 					})},
 					{html: ElementUtils.iconButtonHtml({
-						color: "success",
+						color: "primary",
 						icon: "pencil-square",
 						click: "openGlobleParameterEdit('@{rowid}')"
 					})}
@@ -120,7 +120,7 @@
 <body>
 
 	<div class="container-fluid p-3">
-		<table id="table" class="table table-striped table-bordered table-hover"></table>
+		<table id="table" class="table table-striped table-bordered table-hover align-middle"></table>
 	</div>
 
 </body>

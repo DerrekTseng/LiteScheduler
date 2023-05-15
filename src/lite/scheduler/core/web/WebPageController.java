@@ -44,6 +44,16 @@ public class WebPageController {
 	public ModelAndView openHistory(@RequestParam(required = true) Integer rowid) {
 		return new ModelAndView("taskHistory").addObject("rowid", rowid);
 	}
+	
+	@GetMapping("openTaskHistoryMessage")
+	public ModelAndView openTaskHistoryMessage(@RequestParam(required = true) Integer rowid) {
+		return new ModelAndView("taskHistoryMessage").addObject("rowid", rowid);
+	}
+	
+	@GetMapping("openTaskHistoryParameter")
+	public ModelAndView openHistoryParameter(@RequestParam(required = true) Integer rowid) {
+		return new ModelAndView("taskHistoryParameter").addObject("rowid", rowid);
+	}
 
 	@GetMapping("openTaskDetail")
 	public ModelAndView openDetail(@RequestParam(required = true) Integer rowid) {

@@ -7,33 +7,37 @@ import java.util.Map;
 
 import lite.scheduler.core.entity.GlobleParameter;
 import lite.scheduler.core.entity.TaskParameter;
-import lombok.Getter;
-import lombok.ToString;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@Getter
-@ToString
+@Builder
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class ExecuteParamenter {
 
-	private final Map<String, String> globleParameter;
-	private final Map<String, String> taskParameter;
+	Map<String, String> globleParameter;
+	Map<String, String> taskParameter;
 
-	ExecuteParamenter(List<GlobleParameter> globleParameters, List<TaskParameter> taskParameters) {
-
+	public void readGlobleParameters(List<GlobleParameter> globleParameters) {
 		Map<String, String> _globleParameter = new HashMap<>();
 		globleParameters.stream().forEach(p -> {
 			String name = p.getName();
 			String data = p.getData();
 			_globleParameter.put(name, data);
 		});
+		this.globleParameter = Collections.unmodifiableMap(_globleParameter);
+	}
 
+	public void readTaskParameters(List<TaskParameter> taskParameters) {
 		Map<String, String> _taskParameter = new HashMap<>();
 		taskParameters.stream().forEach(p -> {
 			String name = p.getName();
 			String data = p.getData();
 			_taskParameter.put(name, data);
 		});
-
-		this.globleParameter = Collections.unmodifiableMap(_globleParameter);
 		this.taskParameter = Collections.unmodifiableMap(_taskParameter);
 	}
 

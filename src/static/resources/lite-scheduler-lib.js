@@ -249,7 +249,8 @@ var ElementUtils = top.ElementUtils || {
 		thead.forEach(item => {
 			let _clazz = item.clazz ? `class="${item.clazz}"` : "";
 			let _style = item.style ? `style="${item.style}"` : "";
-			theadBuffer.push(`<th ${_clazz} ${_style}>${item.html}</th>`);
+			let _attrs = item.attrs ? item.attrs : "";
+			theadBuffer.push(`<th ${_attrs} ${_clazz} ${_style}>${item.html}</th>`);
 		});
 		theadBuffer.push("</tr>");
 		theadBuffer.push("</thead>");
@@ -261,7 +262,8 @@ var ElementUtils = top.ElementUtils || {
 			tbody.forEach((_item) => {
 				let _clazz = _item.clazz ? `class="${_item.clazz}"` : "";
 				let _style = _item.style ? `style="${_item.style}"` : "";
-				let $td = ElementUtils.createElement(TextUtils.tranPattern(`<td ${_clazz} ${_style}></td>`, item));
+				let _attrs = _item.attrs ? _item.attrs : "";
+				let $td = ElementUtils.createElement(TextUtils.tranPattern(`<td ${_attrs} ${_clazz} ${_style}></td>`, item));
 				if (_item.html) {
 					$td.innerHTML = TextUtils.tranPattern(_item.html, item);
 				} else if (DocumentUtils.isFunction(_item.parse)) {
@@ -487,7 +489,7 @@ var HttpUtils = top.HttpUtils || {
 					} else if (responseData?.succeeded == false) {
 						error(responseData);
 					}
-					
+
 				});
 			} else {
 				response.json().then((responseData) => {

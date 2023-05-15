@@ -7,11 +7,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import lite.scheduler.core.cmp.ExecuteParamenter;
 import lite.scheduler.core.cmp.SchedulerManipulator;
 import lite.scheduler.core.dto.request.CreateParameter;
 import lite.scheduler.core.dto.request.CreateTask;
 import lite.scheduler.core.dto.request.UpdateParameter;
 import lite.scheduler.core.dto.request.UpdateTask;
+import lite.scheduler.core.dto.response.HistoryParameter;
+import lite.scheduler.core.dto.response.HistoryState;
 import lite.scheduler.core.dto.response.Parameter;
 import lite.scheduler.core.dto.response.TaskDetail;
 import lite.scheduler.core.dto.response.TaskState;
@@ -20,11 +27,14 @@ import lite.scheduler.core.entity.Task;
 import lite.scheduler.core.entity.TaskHistory;
 import lite.scheduler.core.entity.TaskParameter;
 import lite.scheduler.core.repo.GlobleParameterRepo;
+import lite.scheduler.core.repo.TaskHistoryRepo;
 import lite.scheduler.core.repo.TaskParameterRepo;
 import lite.scheduler.core.repo.TaskRepo;
 
 @Service
 public class WebService {
+
+	private static final ObjectMapper mapper = new ObjectMapper();
 
 	@Autowired
 	SchedulerManipulator schedulerManipulator;
@@ -37,6 +47,9 @@ public class WebService {
 
 	@Autowired
 	TaskParameterRepo taskParameterRepo;
+
+	@Autowired
+	TaskHistoryRepo taskHistoryRepo;
 
 	@Transactional(transactionManager = "core_transactionManager")
 	public List<TaskState> qryTaskStates() {
@@ -66,7 +79,7 @@ public class WebService {
 	public String updateTaskEnable(Integer rowid, Boolean enable) {
 		Task task = taskRepo.findById(rowid).orElse(null);
 		if (task == null) {
-			return "「工作排程」不存在";
+			return "「任務排程」不存在";
 		}
 		task.setEnabled(enable);
 		taskRepo.save(task);
@@ -78,7 +91,7 @@ public class WebService {
 	public String deleteTask(Integer rowid) {
 		Task task = taskRepo.findById(rowid).orElse(null);
 		if (task == null) {
-			return "「工作排程」不存在";
+			return "「任務排程」不存在";
 		}
 		schedulerManipulator.removeTask(task);
 		taskRepo.delete(task);
@@ -88,7 +101,7 @@ public class WebService {
 	public String runTask(Integer rowid) {
 		Task task = taskRepo.findById(rowid).orElse(null);
 		if (task == null) {
-			return "「工作排程」不存在";
+			return "「任務排程」不存在";
 		}
 		schedulerManipulator.fire(task);
 		return null;
@@ -99,7 +112,7 @@ public class WebService {
 		if (taskRepo.findAll().stream().anyMatch(task -> {
 			return task.getId().equals(createTask.getId()) || task.getName().equals(createTask.getName());
 		})) {
-			return "「工作代號」或「工作名稱」不允許重複";
+			return "「任務代號」或「任務名稱」不允許重複";
 		}
 
 		Task task = new Task();
@@ -143,7 +156,7 @@ public class WebService {
 	public String updateTask(UpdateTask updateTask) {
 		Task task = taskRepo.findById(updateTask.getRowid()).orElse(null);
 		if (task == null) {
-			return "「工作排程」不存在";
+			return "「任務排程」不存在";
 		}
 
 		if (taskRepo.findAll().stream().anyMatch(t -> {
@@ -153,7 +166,7 @@ public class WebService {
 				return t.getName().equals(updateTask.getName());
 			}
 		})) {
-			return "「工作名稱」不允許重複";
+			return "「任務名稱」不允許重複";
 		}
 
 		task.setName(updateTask.getName());
@@ -230,7 +243,7 @@ public class WebService {
 	public String createTaskParameter(CreateParameter createParameter) {
 		Task task = taskRepo.findById(createParameter.getTaskRowid()).orElse(null);
 		if (task == null) {
-			return "「工作排程」不存在";
+			return "「任務排程」不存在";
 		}
 
 		if (task.getParameters().stream().anyMatch(p -> {
@@ -315,6 +328,64 @@ public class WebService {
 		parameter.setDescription(taskParameter.getDescription());
 
 		return parameter;
+	}
+
+	@Transactional(transactionManager = "core_transactionManager")
+	public List<HistoryState> qryTaskHistoryStates(Integer rowid) {
+		Task task = taskRepo.findById(rowid).orElse(null);
+		if (task == null) {
+			return null;
+		}
+
+		return task.getHistories().stream().map(h -> {
+			HistoryState historyState = new HistoryState();
+			historyState.setRowid(h.getRowid());
+			historyState.setTaskId(task.getId());
+			historyState.setTaskName(task.getName());
+			historyState.setSdate(h.getSdate());
+			historyState.setEdate(h.getEdate());
+			historyState.setResult(h.getResult());
+			return historyState;
+		}).collect(Collectors.toList());
+	}
+
+	@Transactional(transactionManager = "core_transactionManager")
+	public String qryTaskHistoryMessage(Integer rowid) {
+		TaskHistory taskHistory = taskHistoryRepo.findById(rowid).orElse(null);
+		if (taskHistory == null) {
+			return null;
+		}
+		return taskHistory.getMessage();
+	}
+
+	@Transactional(transactionManager = "core_transactionManager")
+	public HistoryParameter qryTaskHistoryParameter(Integer rowid) throws JsonMappingException, JsonProcessingException {
+		TaskHistory taskHistory = taskHistoryRepo.findById(rowid).orElse(null);
+		if (taskHistory == null) {
+			return null;
+		}
+
+		String taskHistoryParameter = taskHistory.getParameter();
+		
+		ExecuteParamenter executeParamenter = mapper.readValue(taskHistoryParameter, ExecuteParamenter.class);
+
+		HistoryParameter historyParameter = new HistoryParameter();
+
+		historyParameter.setGlobleParameter(executeParamenter.getGlobleParameter().entrySet().stream().map(entry -> {
+			Parameter parameter = new Parameter();
+			parameter.setName(entry.getKey());
+			parameter.setData(entry.getValue());
+			return parameter;
+		}).collect(Collectors.toList()));
+
+		historyParameter.setTaskParameter(executeParamenter.getTaskParameter().entrySet().stream().map(entry -> {
+			Parameter parameter = new Parameter();
+			parameter.setName(entry.getKey());
+			parameter.setData(entry.getValue());
+			return parameter;
+		}).collect(Collectors.toList()));
+
+		return historyParameter;
 	}
 
 }

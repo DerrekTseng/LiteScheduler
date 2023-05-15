@@ -38,7 +38,7 @@
 					renderParameterTable(response.data.parameters);
 				},
 				error: (response) => {
-					PromptUtils.error("工作排程不存在");
+					PromptUtils.error("任務排程不存在");
 					DialogUtils.closeWindow(window);
 				}
 			});
@@ -53,7 +53,7 @@
 					text: `
 						<div class="row">
 							<div class="col text-center">
-								<span class="fs-4">工作參數</span>
+								<span class="fs-4">任務參數</span>
 							</div>
 						</div>
 						<div class="row">
@@ -77,16 +77,16 @@
 					{ html: "編輯", clazz: "text-center", style: "width: 60px"},
 				],
 				tbody: [
-					{ html: "@{name}", clazz: "align-middle" },
-					{ html: "@{data}", clazz: "align-middle" },
-					{ html: "@{description}", clazz: "align-middle" },
+					{ html: "@{name}"},
+					{ html: "@{data}"},
+					{ html: "@{description}"},
 					{html: ElementUtils.iconButtonHtml({
 						color: "danger",
 						icon: "trash",
 						click: "deleteTaskParameter('@{rowid}', '@{name}', '@{data}')"
 					})},
 					{html: ElementUtils.iconButtonHtml({
-						color: "success",
+						color: "primary",
 						icon: "pencil-square",
 						click: "openTaskParameterEdit('@{rowid}')"
 					})}
@@ -97,7 +97,7 @@
 		
 		function openTaskParameterCreate(){
 			DialogUtils.window({
-				title: "新增工作參數",
+				title: "新增任務參數",
 				data: {
 					rowid: taskRowid
 				},
@@ -110,7 +110,7 @@
 		
 		function deleteTaskParameter(rowid, name, data){
 			DialogUtils.confirm({
-				title: "刪除工作參數提醒",
+				title: "刪除任務參數提醒",
 				text: `你確定要刪除「<font style="color:red">${name} - ${data}</font>」參數？`,
 				onConfirm: () => {
 					HttpUtils.doPost({
@@ -130,7 +130,7 @@
 		
 		function openTaskParameterEdit(rowid){
 			DialogUtils.window({
-				title: "編輯工作參數",
+				title: "編輯任務參數",
 				data: {
 					rowid: rowid
 				},
@@ -181,21 +181,21 @@
 					<tr>
 						<td>
 							<div class="input-group">
-								<span class="input-group-text">工作代號</span>
+								<span class="input-group-text">任務代號</span>
 								<input name="taskId" type="text" class="form-control" readonly>
 							</div>
 						</td>
 						<td>
 							<div class="input-group has-validation">
-								<span class="input-group-text">工作名稱</span>
+								<span class="input-group-text">任務名稱</span>
 								<input name="taskName" type="text" class="form-control" required>
 								<div class="invalid-tooltip">
-									「工作名稱」不能為空
+									「任務名稱」不能為空
 								</div>
 							</div>
 						</td>
 						<td style="width:50px">
-							<button type="button" class="btn btn-secondary" onclick="save()">
+							<button type="button" class="btn btn-success" onclick="save()">
 								<i class="bi bi-save"></i>
 							</button>
 						</td>
@@ -221,14 +221,14 @@
 					<tr>
 						<td colspan="3">
 							<div class="input-group">
-								<span class="input-group-text">工作描述</span>
+								<span class="input-group-text">任務描述</span>
 								<textarea name="taskDescription" class="form-control"></textarea>
 							</div>
 						</td>
 					</tr>
 					<tr>
 						<td colspan="3">
-							<table id="taskParameters" class="table table-bordered"></table>
+							<table id="taskParameters" class="table table-striped table-bordered table-hover align-middle"></table>
 						</td>
 					</tr>
 				</table>
