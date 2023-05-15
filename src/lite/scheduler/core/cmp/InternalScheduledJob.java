@@ -84,6 +84,8 @@ final public class InternalScheduledJob implements Job {
 
 			log.info("Start schedule [{}][{}]", schedule.getId(), schedule.getName());
 
+			Boolean manualExecution = jobDataMap.containsKey("manualExecution") ? jobDataMap.getBoolean("manualExecution") : false;
+
 			try {
 
 				if (executionType == ExecutionType.Schedule) {
@@ -91,11 +93,11 @@ final public class InternalScheduledJob implements Job {
 						return jobGroup.getState() == ScheduledState.Enabled;
 					}).collect(Collectors.toList());
 					for (JobGroup jobGroup : jobGroupList) {
-						execute(jobGroup);
+						execute(jobGroup, manualExecution);
 					}
 				} else if (executionType == ExecutionType.Group) {
 					Integer executionId = (Integer) jobDataMap.get("executionId");
-					execute(jobGroupRepo.findById(executionId).orElse(null));
+					execute(jobGroupRepo.findById(executionId).orElse(null), manualExecution);
 				} else if (executionType == ExecutionType.Job) {
 					Integer executionId = (Integer) jobDataMap.get("executionId");
 					execute(jobRepo.findById(executionId).orElse(null));
@@ -105,6 +107,7 @@ final public class InternalScheduledJob implements Job {
 				log.error("", e);
 			} finally {
 				schedulerManipulator.setExecutionType(schedule, ExecutionType.Schedule);
+				schedulerManipulator.setManualExecution(schedule, false);
 			}
 
 			log.info("End schedule [{}][{}]", schedule.getId(), schedule.getName());
@@ -115,7 +118,15 @@ final public class InternalScheduledJob implements Job {
 
 	}
 
-	private void execute(JobGroup jobGroup) {
+	private void execute(JobGroup jobGroup, boolean manualExecution) {
+
+		ExecutionHistory latestHistory = jobGroup.getExecutionHistories().stream().findFirst().orElse(null);
+
+		if (latestHistory != null && latestHistory.getExecutionStatus() == ExecutionStatus.Failed && !manualExecution) {
+			log.warn("The last job group [{}] execution failed, skip this time, execution id = {}", jobGroup.getName(), latestHistory.getExecutionId());
+			return;
+		}
+
 		log.info("Scheduling job group [{}]", jobGroup.getName());
 
 		List<lite.scheduler.core.entity.Job> jobList = jobGroup.getJobs().stream().filter(job -> {

@@ -113,6 +113,7 @@ public class SchedulerManipulator {
 			JobKey jobKey = new JobKey(scheduleId);
 			JobDataMap jobDataMap = scheduler.getJobDetail(jobKey).getJobDataMap();
 			jobDataMap.put("executionType", ExecutionType.Schedule);
+			jobDataMap.put("manualExecution", Boolean.TRUE);
 			scheduler.triggerJob(jobKey);
 		} catch (SchedulerException e) {
 			throw new RuntimeException(e);
@@ -127,6 +128,7 @@ public class SchedulerManipulator {
 			JobDataMap jobDataMap = scheduler.getJobDetail(jobKey).getJobDataMap();
 			jobDataMap.put("executionType", ExecutionType.Group);
 			jobDataMap.put("executionId", jobGroup.getId());
+			jobDataMap.put("manualExecution", Boolean.TRUE);
 			scheduler.triggerJob(jobKey);
 		} catch (SchedulerException e) {
 			throw new RuntimeException(e);
@@ -141,6 +143,7 @@ public class SchedulerManipulator {
 			JobDataMap jobDataMap = scheduler.getJobDetail(jobKey).getJobDataMap();
 			jobDataMap.put("executionType", ExecutionType.Job);
 			jobDataMap.put("executionId", job.getId());
+			jobDataMap.put("manualExecution", Boolean.TRUE);
 			scheduler.triggerJob(jobKey);
 		} catch (SchedulerException e) {
 			throw new RuntimeException(e);
@@ -153,6 +156,17 @@ public class SchedulerManipulator {
 			JobKey jobKey = new JobKey(scheduleId);
 			JobDataMap jobDataMap = scheduler.getJobDetail(jobKey).getJobDataMap();
 			jobDataMap.put("executionType", executionType);
+		} catch (SchedulerException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public void setManualExecution(Schedule schedule, Boolean b) {
+		try {
+			String scheduleId = schedule.getId();
+			JobKey jobKey = new JobKey(scheduleId);
+			JobDataMap jobDataMap = scheduler.getJobDetail(jobKey).getJobDataMap();
+			jobDataMap.put("manualExecution", b);
 		} catch (SchedulerException e) {
 			throw new RuntimeException(e);
 		}

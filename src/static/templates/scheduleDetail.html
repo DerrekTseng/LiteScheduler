@@ -181,39 +181,111 @@
 		}
 		
 		function openJobGroupCreate(){
-			
+			DialogUtils.window({
+				title: "新增工作群組",
+				url: "openJobGroupCreate",
+				data: {id: scheduleId},
+				callback: () => {
+					doQuery();
+				}
+			});
 		}
 		
 		function openJobGroupSequence(){
-			
+			DialogUtils.window({
+				title: "修改工作群組順序",
+				url: "openJobGroupSequence",
+				data: {id: scheduleId},
+				callback: () => {
+					doQuery();
+				}
+			});
 		}
 	
 		function runJobGroup(id, name){
-			
+			DialogUtils.confirm({
+				title: "執行工作群組提醒",
+				text: `你確定要執行「<font style="color:red">${id} - ${name}</font>」工作群組？`,
+				onConfirm: () => {
+					HttpUtils.doPost({
+						url: "executeJobGroup",
+						data: {id}
+					});
+				}
+			});
+		}
+		
+		function updateJobGroupEnable(id, enable) {
+			HttpUtils.doPost({
+				url: "updateJobGroupEnable",
+				data: {id, enable}
+			});
 		}
 		
 		function deleteJobGroup(id, name){
-			
+			DialogUtils.confirm({
+				title: "刪除工作群組提醒",
+				text: `你確定要刪除「<font style="color:red">${id} - ${name}</font>」工作群組？`,
+				onConfirm: () => {
+					HttpUtils.doPost({
+						url: "deleteJobGroup",
+						data: {id}
+					});
+				}
+			});
 		}
 		
 		function openJobGroupDetail(id){
-			
+			DialogUtils.window({
+				title: "工作群組明細",
+				url: "openJobGroupDetail",
+				data: {id: id},
+				callback: () => {
+					doQuery();
+				}
+			});
 		}
 		
 		function openScheduleParametersCreate(){
-			
+			DialogUtils.window({
+				title: "新增排程參數",
+				url: "openScheduleParametersCreate",
+				data: {id: scheduleId},
+				callback: () => {
+					doQuery();
+				}
+			});
 		}
 		
-		function deleteScheduleParameter(id){
-			
+		function deleteScheduleParameter(id, value){
+			DialogUtils.confirm({
+				title: "刪除排程參數提醒",
+				text: `你確定要刪除「<font style="color:red">${id} - ${value}</font>」工作群組？`,
+				onConfirm: () => {
+					HttpUtils.doPost({
+						url: "deleteScheduleParameter",
+						data: {id}
+					});
+				}
+			});
 		}
 		
 		function openScheduleParameterEdit(id){
-			
+			DialogUtils.window({
+				title: "修改排程參數",
+				url: "openScheduleParameterEdit",
+				data: {id: id},
+				callback: () => {
+					doQuery();
+				}
+			});
 		}
 		
-		function updateScheduleParamegerEnable(id, value){
-			
+		function updateScheduleParamegerEnable(id, enable){
+			HttpUtils.doPost({
+				url: "deleteScheduleParameter",
+				data: {id, enable}
+			});
 		}
 		
 	</script>
