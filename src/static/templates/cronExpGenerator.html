@@ -10,7 +10,11 @@
 	<link th:href="@{/bootstrap-icons@1.9.0/bootstrap-icons.css}" rel="stylesheet" />
 	<link th:href="@{/lite-scheduler-lib.css}" rel="stylesheet" />
 	<script th:src="@{/lite-scheduler-lib.js}"></script>
-
+	<style>
+		select {
+			max-width:120px
+		}
+	</style>
 	<script th:inline="javascript">
 		const cronExp = /*[[${cronExp}]]*/ "";
 
@@ -427,6 +431,42 @@
 			}
 		}
 
+		function computeCronExp() {
+			computeSeconds();
+			computeMinutes();
+			computeHours();
+			computeDay();
+			computeMonth();
+			computeYear();
+			let seconds = cronResult.cronResultSecond.value;
+			let minutes = cronResult.cronResultMinute.value;
+			let hours = cronResult.cronResultHour.value;
+			let dom = cronResult.cronResultDom.value;
+			let month = cronResult.cronResultMonth.value;
+			let dow = cronResult.cronResultDow.value;
+			let year = cronResult.cronResultYear.value;
+			document.getElementById('apply-cronExp').value = seconds + ' ' + minutes + ' ' + hours + ' ' + dom + ' ' + month + ' ' + dow + ' ' + year;
+		}
+
+		function resolveCronExp() {
+			let splited = cronExp.split(" ");
+
+			let seconds = splited[0];
+			let minutes = splited[1];
+			let hours = splited[2];
+			let dom = splited[3];
+			let month = splited[4];
+			let dow = splited[5];
+			let year = splited[6];
+			resolveSeconds(seconds);
+			resolveMinutes(minutes);
+			resolveHours(hours);
+			resolveDay(dow, dom);
+			resolveMonth(month);
+			resolveYear(year);
+		}
+
+
 		DocumentUtils.ready(() => {
 
 			document.getElementById('apply-cronExp').value = cronExp;
@@ -483,37 +523,11 @@
 			ElementUtils.selectOptions(document.getElementById('cronYearRangeStart'), optionsYear, currentYear);
 			ElementUtils.selectOptions(document.getElementById('cronYearRangeEnd'), optionsYear, currentYear);
 
-			let cronExpSplited = cronExp.split(" ");
-			let cronExpSplitedSeconds = cronExpSplited[0];
-			let cronExpSplitedMinutes = cronExpSplited[1];
-			let cronExpSplitedHours = cronExpSplited[2];
-			let cronExpSplitedDom = cronExpSplited[3];
-			let cronExpSplitedMonth = cronExpSplited[4];
-			let cronExpSplitedDow = cronExpSplited[5];
-			let cronExpSplitedYear = cronExpSplited[6];
-			resolveSeconds(cronExpSplitedSeconds);
-			resolveMinutes(cronExpSplitedMinutes);
-			resolveHours(cronExpSplitedHours);
-			resolveDay(cronExpSplitedDow, cronExpSplitedDom);
-			resolveMonth(cronExpSplitedMonth);
-			resolveYear(cronExpSplitedYear);
+			resolveCronExp();
 
 			document.querySelectorAll('#crontabs input, #crontabs select').forEach(e => {
 				e.addEventListener("change", function () {
-					computeSeconds();
-					computeMinutes();
-					computeHours();
-					computeDay();
-					computeMonth();
-					computeYear();
-					let seconds = cronResult.cronResultSecond.value;
-					let minutes = cronResult.cronResultMinute.value;
-					let hours = cronResult.cronResultHour.value;
-					let dom = cronResult.cronResultDom.value;
-					let month = cronResult.cronResultMonth.value;
-					let dow = cronResult.cronResultDow.value;
-					let year = cronResult.cronResultYear.value;
-					document.getElementById('apply-cronExp').value = seconds + ' ' + minutes + ' ' + hours + ' ' + dom + ' ' + month + ' ' + dow + ' ' + year;
+					computeCronExp();
 				});
 			});
 
@@ -526,13 +540,13 @@
 			items.forEach(item => {
 				count++;
 				buffer.push(`
-							<td>
-								<div class="form-check">
-									<input class="form-check-input" name="${name}" type="checkbox" id="${idPrefix}${item.value}" value="${item.value}">
-									<label class="form-check-label" for="${idPrefix}${item.value}">${item.text}</label>
-								</div>
-							</td>
-						`);
+								<td>
+									<div class="form-check">
+										<input class="form-check-input" name="${name}" type="checkbox" id="${idPrefix}${item.value}" value="${item.value}">
+										<label class="form-check-label" for="${idPrefix}${item.value}">${item.text}</label>
+									</div>
+								</td>
+							`);
 				if (count % changeLine == 0) {
 					buffer.push("</tr>");
 					buffer.push("<tr>")
