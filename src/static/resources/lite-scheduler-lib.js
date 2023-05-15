@@ -360,16 +360,16 @@ var ElementUtils = top.ElementUtils || {
 
 var PromptUtils = top.PromptUtils || {
 	info: (msg) => {
-		PromptUtils.prompt("alert-info", msg, 1000);
+		PromptUtils.prompt("alert-info", msg, 2000);
 	},
 	success: (msg) => {
 		PromptUtils.prompt("alert-success", msg, 1000);
 	},
 	warning: (msg) => {
-		PromptUtils.prompt("alert-warning", msg, 3000);
+		PromptUtils.prompt("alert-warning", msg, 5000);
 	},
 	error: (msg) => {
-		PromptUtils.prompt("alert-danger", msg, 5000);
+		PromptUtils.prompt("alert-danger", msg, 8000);
 	},
 	prompt: (alertClass = "", msg = "", interval = 3000) => {
 
@@ -495,8 +495,15 @@ var HttpUtils = top.HttpUtils || {
 					error(responseData, response);
 				});
 			}
-		}).catch((response) => {
-			error(response);
+		}).catch((e) => {
+			PromptUtils.error(`
+				<span>Message：</span><br>
+				<span class="ms-3">${e.message}</span><br>
+				<span>Stack：</span><br>
+				<p class="ms-3">${e.stack.replace("\n", "<br>")}</p>
+				
+			`);
+			error(e);
 		});
 	}
 }
