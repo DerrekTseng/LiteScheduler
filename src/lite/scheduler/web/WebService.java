@@ -355,7 +355,7 @@ public class WebService {
 		if (taskHistory == null) {
 			return null;
 		}
-		return taskHistory.getMessage();
+		return taskHistory.getMessage().replace("\n", "<br>");
 	}
 
 	@Transactional(transactionManager = "coreTransactionManager")
