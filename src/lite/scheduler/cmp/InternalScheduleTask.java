@@ -33,7 +33,7 @@ final public class InternalScheduleTask implements Job {
 	public void execute(JobExecutionContext context) throws JobExecutionException {
 
 		ApplicationContext applicationContext = LiteSchedulerApplication.getApplicationContext();
-		JpaTransactionManager transactionManager = applicationContext.getBean("core_transactionManager", JpaTransactionManager.class);
+		JpaTransactionManager transactionManager = applicationContext.getBean("coreTransactionManager", JpaTransactionManager.class);
 		GlobleParameterRepo globleParameterRepo = applicationContext.getBean(GlobleParameterRepo.class);
 		SchedulerManipulator schedulerManipulator = applicationContext.getBean(SchedulerManipulator.class);
 

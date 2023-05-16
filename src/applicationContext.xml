@@ -3,44 +3,69 @@
 	xmlns="http://www.springframework.org/schema/beans"
 	xmlns:p="http://www.springframework.org/schema/p"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
 	xmlns:jpa="http://www.springframework.org/schema/data/jpa"
 	xsi:schemaLocation=
 	"http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
 	 http://www.springframework.org/schema/data/jpa http://www.springframework.org/schema/data/jpa/spring-jpa.xsd">
 	
-	<jpa:repositories base-package="lite.scheduler.repo" entity-manager-factory-ref="core_entityManagerFactory" transaction-manager-ref="core_transactionManager"/>
-
-    <bean id="core_transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager" p:entityManagerFactory-ref="core_entityManagerFactory"/>
+	<!-- 掃描的 package -->
+	<context:component-scan base-package="com.custom" />
 	
-	<bean id="core_entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
-        <property name="dataSource" ref="core_dataSource" />
-        <property name="packagesToScan" value="lite.scheduler.entity" />
+	<!-- 讀取 Property 檔 -->
+	<!-- 「lite.scheduler.work.dir」 參數，在 Eclipse 環境下會是指向專案目錄、在部屬 War 檔的環境則是指向 Tomcat 的目錄  -->
+	<bean class="org.springframework.context.support.PropertySourcesPlaceholderConfigurer">
+		<property name="ignoreResourceNotFound" value="true" />
+		<property name="locations">
+			<!-- 依序讀取，後面的 properties 如果有相同的 key 則會取代前面的。 -->
+			<list>
+				<value>classpath:/dev.properties</value>
+				<value>file:${lite.scheduler.work.dir}/prd.properties</value> 
+			</list>
+		</property>
+		<property name="fileEncoding" value="utf-8" />
+	</bean>
+	
+	
+	<!-- TransactionManager 與 DataSource 的宣告範例 -->
+	<!-- 注意： TransactionManager 的 id 不能是 "transactionManager"，必須是其他名稱例如："mysql_transactionManager"  -->
+	<!-- 
+	<jpa:repositories base-package="com.custom.repo" entity-manager-factory-ref="mysql_entityManagerFactory" transaction-manager-ref="mysql_transactionManager"/>
+
+    <bean lazy-init="true" id="mysql_transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager" p:entityManagerFactory-ref="mysql_entityManagerFactory"/>
+	 
+	<bean id="mysql_entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+        <property name="dataSource" ref="mysql_dataSource" />
+        <property name="packagesToScan" value="com.custom.entity" />
         <property name="jpaVendorAdapter">
             <bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter" />
         </property>
         <property name="jpaProperties">
         	<props>
-        		<prop key="hibernate.dialect">org.hibernate.dialect.H2Dialect</prop>
+        		<prop key="hibernate.dialect">org.hibernate.dialect.MySQL8Dialect</prop>
         		<prop key="hibernate.format_sql">false</prop>
         		<prop key="hibernate.show_sql">false</prop>
-        		<prop key="hibernate.hbm2ddl.auto">update</prop>
+        		<prop key="hibernate.hbm2ddl.auto">validate</prop>
         	</props>
         </property>
     </bean>
 	
-	<bean id="core_dataSource" class="org.apache.commons.dbcp2.BasicDataSource" destroy-method="close">
-		<property name="driverClassName" value="org.h2.Driver" />
-		<property name="url" value="jdbc:h2:file:${lite.scheduler.work.dir}/lite-scheduler" />
-		<property name="username" value="sa" />
-		<property name="password" value="sa" />
+	<bean id="mysql_dataSource" class="org.apache.commons.dbcp2.BasicDataSource" destroy-method="close">
+		<property name="driverClassName" value="com.mysql.cj.jdbc.Driver" />
+		<property name="url" value="${mysql.url}" />
+		<property name="username" value="${mysql.username}" />
+		<property name="password" value="${mysql.password}" />
+		
+		<property name="maxTotal" value="100"/>
+	    <property name="validationQuery" value="SELECT 1 FROM DUAL"/>
+	    <property name="maxConnLifetimeMillis" value="14400000"/>
+		<property name="timeBetweenEvictionRunsMillis" value="600000"/>
+	    <property name="removeAbandonedTimeout" value="60"/>
+	    <property name="minEvictableIdleTimeMillis" value="600000"/>
+	    <property name="removeAbandonedOnBorrow" value="true" />
+        <property name="removeAbandonedOnMaintenance" value="true" />
 	</bean>
-	
-	
-	<bean id="quartzSchedulerThreadSize" class="java.lang.Integer">
-		<constructor-arg value="8" />
-	</bean>
-
-	<!-- Add your custom configuration -->	
-	<import resource="customConfiguration.xml" />	
+	-->	
 	 
 </beans>

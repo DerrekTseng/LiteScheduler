@@ -42,7 +42,7 @@ public class SchedulerManipulator {
 		}
 	}
 
-	@Transactional(transactionManager = "core_transactionManager")
+	@Transactional(transactionManager = "coreTransactionManager")
 	public void registerTasks() {
 		taskRepo.findAll().forEach(this::addTask);
 	}

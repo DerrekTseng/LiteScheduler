@@ -7,7 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import lite.scheduler.entity.TaskHistory;
 
 @Repository
-@Transactional(transactionManager = "core_transactionManager")
+@Transactional(transactionManager = "coreTransactionManager")
 public interface TaskHistoryRepo extends JpaRepository<TaskHistory, Integer>{
 
 }

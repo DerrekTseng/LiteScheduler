@@ -51,7 +51,7 @@ public class WebService {
 	@Autowired
 	TaskHistoryRepo taskHistoryRepo;
 
-	@Transactional(transactionManager = "core_transactionManager")
+	@Transactional(transactionManager = "coreTransactionManager")
 	public List<TaskState> qryTaskStates() {
 		return taskRepo.findAll().stream().map(task -> {
 			TaskState taskState = new TaskState();
@@ -75,7 +75,7 @@ public class WebService {
 		}).collect(Collectors.toList());
 	}
 
-	@Transactional(transactionManager = "core_transactionManager")
+	@Transactional(transactionManager = "coreTransactionManager")
 	public String updateTaskEnable(Integer rowid, Boolean enable) {
 		Task task = taskRepo.findById(rowid).orElse(null);
 		if (task == null) {
@@ -87,7 +87,7 @@ public class WebService {
 		return null;
 	}
 
-	@Transactional(transactionManager = "core_transactionManager")
+	@Transactional(transactionManager = "coreTransactionManager")
 	public String deleteTask(Integer rowid) {
 		Task task = taskRepo.findById(rowid).orElse(null);
 		if (task == null) {
@@ -107,7 +107,7 @@ public class WebService {
 		return null;
 	}
 
-	@Transactional(transactionManager = "core_transactionManager")
+	@Transactional(transactionManager = "coreTransactionManager")
 	public String createTask(CreateTask createTask) {
 		if (taskRepo.findAll().stream().anyMatch(task -> {
 			return task.getId().equals(createTask.getId()) || task.getName().equals(createTask.getName());
@@ -127,7 +127,7 @@ public class WebService {
 		return null;
 	}
 
-	@Transactional(transactionManager = "core_transactionManager")
+	@Transactional(transactionManager = "coreTransactionManager")
 	public TaskDetail qryTaskDetail(Integer rowid) {
 		Task task = taskRepo.findById(rowid).orElse(null);
 		if (task == null) {
@@ -152,7 +152,7 @@ public class WebService {
 		return taskDetail;
 	}
 
-	@Transactional(transactionManager = "core_transactionManager")
+	@Transactional(transactionManager = "coreTransactionManager")
 	public String updateTask(UpdateTask updateTask) {
 		Task task = taskRepo.findById(updateTask.getRowid()).orElse(null);
 		if (task == null) {
@@ -178,7 +178,7 @@ public class WebService {
 		return null;
 	}
 
-	@Transactional(transactionManager = "core_transactionManager")
+	@Transactional(transactionManager = "coreTransactionManager")
 	public List<Parameter> qryGlobleParameter() {
 		return globleParameterRepo.findAll().stream().map(p -> {
 			Parameter parameter = new Parameter();
@@ -190,7 +190,7 @@ public class WebService {
 		}).collect(Collectors.toList());
 	}
 
-	@Transactional(transactionManager = "core_transactionManager")
+	@Transactional(transactionManager = "coreTransactionManager")
 	public String createGlobleParameter(CreateParameter createParameter) {
 		if (globleParameterRepo.findAll().stream().anyMatch(p -> {
 			return p.getName().equals(createParameter.getName());
@@ -205,7 +205,7 @@ public class WebService {
 		return null;
 	}
 
-	@Transactional(transactionManager = "core_transactionManager")
+	@Transactional(transactionManager = "coreTransactionManager")
 	public String updateGlobleParameter(UpdateParameter updateParameter) {
 		GlobleParameter globleParameter = globleParameterRepo.findById(updateParameter.getRowid()).orElse(null);
 		if (globleParameter == null) {
@@ -229,7 +229,7 @@ public class WebService {
 		return null;
 	}
 
-	@Transactional(transactionManager = "core_transactionManager")
+	@Transactional(transactionManager = "coreTransactionManager")
 	public String deleteGlobleParameter(Integer rowid) {
 		GlobleParameter globleParameter = globleParameterRepo.findById(rowid).orElse(null);
 		if (globleParameter == null) {
@@ -239,7 +239,7 @@ public class WebService {
 		return null;
 	}
 
-	@Transactional(transactionManager = "core_transactionManager")
+	@Transactional(transactionManager = "coreTransactionManager")
 	public String createTaskParameter(CreateParameter createParameter) {
 		Task task = taskRepo.findById(createParameter.getTaskRowid()).orElse(null);
 		if (task == null) {
@@ -261,7 +261,7 @@ public class WebService {
 		return null;
 	}
 
-	@Transactional(transactionManager = "core_transactionManager")
+	@Transactional(transactionManager = "coreTransactionManager")
 	public String updateTaskParameter(UpdateParameter updateParameter) {
 
 		TaskParameter taskParameter = taskParameterRepo.findById(updateParameter.getRowid()).orElse(null);
@@ -288,7 +288,7 @@ public class WebService {
 		return null;
 	}
 
-	@Transactional(transactionManager = "core_transactionManager")
+	@Transactional(transactionManager = "coreTransactionManager")
 	public String deleteTaskParameter(Integer rowid) {
 		TaskParameter taskParameter = taskParameterRepo.findById(rowid).orElse(null);
 		if (taskParameter == null) {
@@ -298,7 +298,7 @@ public class WebService {
 		return null;
 	}
 
-	@Transactional(transactionManager = "core_transactionManager")
+	@Transactional(transactionManager = "coreTransactionManager")
 	public Parameter qryGlobleParameter(Integer rowid) {
 		GlobleParameter globleParameter = globleParameterRepo.findById(rowid).orElse(null);
 		if (globleParameter == null) {
@@ -314,7 +314,7 @@ public class WebService {
 		return parameter;
 	}
 
-	@Transactional(transactionManager = "core_transactionManager")
+	@Transactional(transactionManager = "coreTransactionManager")
 	public Parameter qryTaskParameter(Integer rowid) {
 		TaskParameter taskParameter = taskParameterRepo.findById(rowid).orElse(null);
 		if (taskParameter == null) {
@@ -330,7 +330,7 @@ public class WebService {
 		return parameter;
 	}
 
-	@Transactional(transactionManager = "core_transactionManager")
+	@Transactional(transactionManager = "coreTransactionManager")
 	public List<HistoryState> qryTaskHistoryStates(Integer rowid) {
 		Task task = taskRepo.findById(rowid).orElse(null);
 		if (task == null) {
@@ -349,7 +349,7 @@ public class WebService {
 		}).collect(Collectors.toList());
 	}
 
-	@Transactional(transactionManager = "core_transactionManager")
+	@Transactional(transactionManager = "coreTransactionManager")
 	public String qryTaskHistoryMessage(Integer rowid) {
 		TaskHistory taskHistory = taskHistoryRepo.findById(rowid).orElse(null);
 		if (taskHistory == null) {
@@ -358,7 +358,7 @@ public class WebService {
 		return taskHistory.getMessage();
 	}
 
-	@Transactional(transactionManager = "core_transactionManager")
+	@Transactional(transactionManager = "coreTransactionManager")
 	public HistoryParameter qryTaskHistoryParameter(Integer rowid) throws JsonMappingException, JsonProcessingException {
 		TaskHistory taskHistory = taskHistoryRepo.findById(rowid).orElse(null);
 		if (taskHistory == null) {
