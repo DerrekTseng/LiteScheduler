@@ -82,7 +82,6 @@ final public class InternalScheduleTask implements Job {
 			TaskHistory taskHistory = new TaskHistory();
 
 			MessageWriter messageWriter = new MessageWriter((line) -> {
-				log.info(line);
 				taskHistory.setMessage(taskHistory.getMessage() + line + "\n");
 				saveHistory(taskHistory, transactionManager, taskHistoryRepo);
 			});
