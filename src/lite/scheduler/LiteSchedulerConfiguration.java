@@ -1,5 +1,6 @@
 package lite.scheduler;
 
+import java.io.File;
 import java.util.Properties;
 
 import javax.sql.DataSource;
@@ -90,7 +91,7 @@ public class LiteSchedulerConfiguration implements WebMvcConfigurer {
 		BasicDataSource dataSource = new BasicDataSource();
 		dataSource.setDriverClassName("org.h2.Driver");
 		String workDir = System.getProperties().getProperty("lite.scheduler.work.dir");
-		String url = String.format("jdbc:h2:file:%s/lite-scheduler", workDir);
+		String url = String.format("jdbc:h2:file:%s", new File(workDir, "lite-scheduler").getPath());
 		dataSource.setUrl(url);
 		dataSource.setUsername("sa");
 		dataSource.setPassword("sa");
