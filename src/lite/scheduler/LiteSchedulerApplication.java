@@ -3,6 +3,9 @@ package lite.scheduler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+import org.springframework.boot.autoconfigure.jdbc.JdbcTemplateAutoConfiguration;
+import org.springframework.boot.autoconfigure.thymeleaf.ThymeleafAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
@@ -16,7 +19,7 @@ import lite.scheduler.cmp.SchedulerManipulator;
 import lite.scheduler.repo.TaskHistoryRepo;
 
 @Configuration
-@SpringBootApplication
+@SpringBootApplication(exclude = { DataSourceAutoConfiguration.class, ThymeleafAutoConfiguration.class, JdbcTemplateAutoConfiguration.class })
 @ImportResource("classpath:/applicationContext.xml")
 public class LiteSchedulerApplication extends SpringBootServletInitializer {
 

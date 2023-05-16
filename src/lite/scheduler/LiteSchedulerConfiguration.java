@@ -11,10 +11,12 @@ import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.impl.StdSchedulerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
 import org.springframework.boot.web.servlet.server.ServletWebServerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.env.Environment;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.orm.jpa.JpaTransactionManager;
@@ -87,6 +89,8 @@ public class LiteSchedulerConfiguration implements WebMvcConfigurer {
 	}
 
 	@Bean
+	@Primary
+	@Qualifier("coreDataSource")
 	DataSource coreDataSource() {
 		BasicDataSource dataSource = new BasicDataSource();
 		dataSource.setDriverClassName("org.h2.Driver");
@@ -99,6 +103,8 @@ public class LiteSchedulerConfiguration implements WebMvcConfigurer {
 	}
 
 	@Bean
+	@Primary
+	@Qualifier("coreEntityManagerFactory")
 	LocalContainerEntityManagerFactoryBean coreEntityManagerFactory() {
 		LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
 		em.setDataSource(coreDataSource());
@@ -115,6 +121,8 @@ public class LiteSchedulerConfiguration implements WebMvcConfigurer {
 	}
 
 	@Bean
+	@Primary
+	@Qualifier("coreTransactionManager")
 	JpaTransactionManager coreTransactionManager() {
 		JpaTransactionManager transactionManager = new JpaTransactionManager();
 		transactionManager.setEntityManagerFactory(coreEntityManagerFactory().getObject());
