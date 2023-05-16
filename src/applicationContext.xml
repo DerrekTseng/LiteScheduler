@@ -1,13 +1,46 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<beans default-autowire="byName" 
+<beans default-autowire="byName"
 	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:p="http://www.springframework.org/schema/p"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation= "http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+	xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+	xsi:schemaLocation=
+	"http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+	 http://www.springframework.org/schema/data/jpa http://www.springframework.org/schema/data/jpa/spring-jpa.xsd">
 	
-	<!-- LiteScheduler core beans configuration -->
-	<import resource="coreConfiguration.xml" />
+	<jpa:repositories base-package="lite.scheduler.repo" entity-manager-factory-ref="core_entityManagerFactory" transaction-manager-ref="core_transactionManager"/>
+
+    <bean id="core_transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager" p:entityManagerFactory-ref="core_entityManagerFactory"/>
+	
+	<bean id="core_entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+        <property name="dataSource" ref="core_dataSource" />
+        <property name="packagesToScan" value="lite.scheduler.entity" />
+        <property name="jpaVendorAdapter">
+            <bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter" />
+        </property>
+        <property name="jpaProperties">
+        	<props>
+        		<prop key="hibernate.dialect">org.hibernate.dialect.H2Dialect</prop>
+        		<prop key="hibernate.format_sql">false</prop>
+        		<prop key="hibernate.show_sql">false</prop>
+        		<prop key="hibernate.hbm2ddl.auto">update</prop>
+        	</props>
+        </property>
+    </bean>
+	
+	<bean id="core_dataSource" class="org.apache.commons.dbcp2.BasicDataSource" destroy-method="close">
+		<property name="driverClassName" value="org.h2.Driver" />
+		<property name="url" value="jdbc:h2:file:${lite.scheduler.work.dir}/lite-scheduler" />
+		<property name="username" value="sa" />
+		<property name="password" value="sa" />
+	</bean>
+	
+	
+	<bean id="quartzSchedulerThreadSize" class="java.lang.Integer">
+		<constructor-arg value="8" />
+	</bean>
 
 	<!-- Add your custom configuration -->	
-	<!-- <import resource="customConfiguration.xml" /> -->	
-	 	
+	<import resource="customConfiguration.xml" />	
+	 
 </beans>

@@ -4,10 +4,17 @@
 	xmlns:p="http://www.springframework.org/schema/p"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+	xmlns:context="http://www.springframework.org/schema/context"
 	xsi:schemaLocation=
 	"http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+	 http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
 	 http://www.springframework.org/schema/data/jpa http://www.springframework.org/schema/data/jpa/spring-jpa.xsd">
 	
+	<!-- 掃描的 package -->
+	<context:component-scan base-package="com.custom" />
+	
+	<!-- 讀取 Property 檔 -->
+	<!-- 「lite.scheduler.work.dir」 參數，在 Eclipse 環境下會是指向專案目錄、在部屬 War 檔的環境則是指向 Tomcat 的目錄  -->
 	<bean class="org.springframework.context.support.PropertySourcesPlaceholderConfigurer">
 		<property name="ignoreResourceNotFound" value="true" />
 		<property name="locations">
@@ -20,13 +27,17 @@
 		<property name="fileEncoding" value="utf-8" />
 	</bean>
 	
-	<jpa:repositories base-package="lite.scheduler.custom.repository" entity-manager-factory-ref="mysql_entityManagerFactory" transaction-manager-ref="mysql_transactionManager"/>
-
-    <bean id="mysql_transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager" p:entityManagerFactory-ref="mysql_entityManagerFactory"/>
 	
+	<!-- TransactionManager 與 DataSource 的宣告範例 -->
+	<!-- 注意： TransactionManager 的 id 不能是 "transactionManager"，必須是其他名稱例如："mysql_transactionManager"  -->
+	<!-- 
+	<jpa:repositories base-package="com.custom.repo" entity-manager-factory-ref="mysql_entityManagerFactory" transaction-manager-ref="mysql_transactionManager"/>
+
+    <bean lazy-init="true" id="mysql_transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager" p:entityManagerFactory-ref="mysql_entityManagerFactory"/>
+	 
 	<bean id="mysql_entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
         <property name="dataSource" ref="mysql_dataSource" />
-        <property name="packagesToScan" value="lite.scheduler.custom.entity" />
+        <property name="packagesToScan" value="com.custom.entity" />
         <property name="jpaVendorAdapter">
             <bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter" />
         </property>
@@ -35,7 +46,7 @@
         		<prop key="hibernate.dialect">org.hibernate.dialect.MySQL8Dialect</prop>
         		<prop key="hibernate.format_sql">false</prop>
         		<prop key="hibernate.show_sql">false</prop>
-        		<prop key="hibernate.hbm2ddl.auto">update</prop>
+        		<prop key="hibernate.hbm2ddl.auto">validate</prop>
         	</props>
         </property>
     </bean>
@@ -54,6 +65,6 @@
 	    <property name="minEvictableIdleTimeMillis" value="600000"/>
 	    <property name="removeAbandonedOnBorrow" value="true" />
         <property name="removeAbandonedOnMaintenance" value="true" />
-	</bean> 
-	
+	</bean>
+	-->
 </beans>
