@@ -1,6 +1,8 @@
 package lite.scheduler;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.List;
 import java.util.Properties;
 
 import javax.sql.DataSource;
@@ -14,10 +16,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
 import org.springframework.boot.web.servlet.server.ServletWebServerFactory;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.env.Environment;
+import org.springframework.core.io.Resource;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
@@ -30,9 +35,15 @@ import org.thymeleaf.spring5.view.ThymeleafViewResolver;
 import org.thymeleaf.templatemode.TemplateMode;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 
+import lite.scheduler.cmp.CustomPropertyStored;
+
 @Configuration
 @EnableJpaRepositories(basePackages = "lite.scheduler.repo", entityManagerFactoryRef = "coreEntityManagerFactory", transactionManagerRef = "coreTransactionManager")
 public class LiteSchedulerConfiguration implements WebMvcConfigurer {
+
+	@Autowired
+	@Qualifier("customProperties")
+	List<Resource[]> customProperties;
 
 	@Autowired
 	Environment env;
@@ -127,6 +138,24 @@ public class LiteSchedulerConfiguration implements WebMvcConfigurer {
 		JpaTransactionManager transactionManager = new JpaTransactionManager();
 		transactionManager.setEntityManagerFactory(coreEntityManagerFactory().getObject());
 		return transactionManager;
+	}
+
+	@Bean
+	@Primary
+	@Qualifier("customPropertyStored")
+	CustomPropertyStored customPropertyStored() throws IOException {
+		return new CustomPropertyStored(customProperties.toArray(new Resource[customProperties.size()]));
+	}
+
+	@Bean
+	static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer(ApplicationContext applicationContext) {
+		PropertySourcesPlaceholderConfigurer pspc = new PropertySourcesPlaceholderConfigurer();
+		pspc.setIgnoreResourceNotFound(true);
+		@SuppressWarnings("unchecked")
+		List<Resource[]> customProperties = (List<Resource[]>) applicationContext.getBean("customProperties");
+		pspc.setLocations(customProperties.toArray(new Resource[customProperties.size()]));
+		pspc.setFileEncoding("utf-8");
+		return pspc;
 	}
 
 }

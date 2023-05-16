@@ -12,7 +12,7 @@
 	
 	<!-- 掃描的 package -->
 	<context:component-scan base-package="com.custom" />
-	
+	 
 	<!-- 讀取客製化 Property 檔 -->
 	<!-- 「lite.scheduler.work.dir」 參數，在 Eclipse 環境下會是指向專案目錄、在部屬 War 檔的環境則是指向 Tomcat 的目錄  -->
 	<util:list id="customProperties" value-type="org.springframework.core.io.Resource">
@@ -20,18 +20,6 @@
 		<value>classpath:/dev.properties</value>
 		<value>file:${lite.scheduler.work.dir}/prd.properties</value>
 	</util:list>
-	
-	<!-- @Configuration 設定專用，存放客製化 Property 的 Bean -->
-	<bean id="customPropertyStored" class="lite.scheduler.cmp.CustomPropertyStored">
-		<constructor-arg ref="customProperties"/>
-	</bean>
-	
-	<!-- XML 設定專用，Placeholder，用於轉換 xml 中 ${key} 的值 -->
-	<bean class="org.springframework.context.support.PropertySourcesPlaceholderConfigurer">
-		<property name="ignoreResourceNotFound" value="true" />
-		<property name="locations" ref="customProperties"/>
-		<property name="fileEncoding" value="utf-8" />
-	</bean>
 	
 	<!-- =====Spring Data JPA 範例===== -->
 	<import resource="spring-data-jpa.xml" />
