@@ -43,6 +43,7 @@ public class LiteSchedulerConfiguration implements WebMvcConfigurer {
 	@Override
 	public void addResourceHandlers(ResourceHandlerRegistry registry) {
 		registry.addResourceHandler("/resources/**").addResourceLocations("classpath:/static/resources/");
+		registry.addResourceHandler("/favicon.ico").addResourceLocations("classpath:/static/favicon.ico");
 	}
 
 	@Bean
