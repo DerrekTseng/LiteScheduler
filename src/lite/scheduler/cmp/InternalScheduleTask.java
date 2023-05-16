@@ -81,19 +81,20 @@ final public class InternalScheduleTask implements Job {
 
 			TaskHistory taskHistory = new TaskHistory();
 
+			taskHistory.setTask(task);
+			taskHistory.setMessage("");
+			taskHistory.setParameter("");
+			taskHistory.setResult(ExecutionResult.Running);
+			taskHistory.setSdate(new Date());
+			saveHistory(taskHistory, transactionManager, taskHistoryRepo);
+
 			MessageWriter messageWriter = new MessageWriter((line) -> {
 				taskHistory.setMessage(taskHistory.getMessage() + line + "\n");
 				saveHistory(taskHistory, transactionManager, taskHistoryRepo);
 			});
 
 			try {
-
-				taskHistory.setTask(task);
-				taskHistory.setMessage("");
-
 				taskHistory.setParameter(mapper.writeValueAsString(executeParamenter));
-				taskHistory.setResult(ExecutionResult.Running);
-				taskHistory.setSdate(new Date());
 				saveHistory(taskHistory, transactionManager, taskHistoryRepo);
 
 				Class<?> taskClass = Class.forName(task.getTaskClass());
@@ -114,7 +115,6 @@ final public class InternalScheduleTask implements Job {
 			log.info("End task [{}][{}]", task.getId(), task.getName());
 
 			ThreadContext.clearAll();
-
 		});
 
 	}

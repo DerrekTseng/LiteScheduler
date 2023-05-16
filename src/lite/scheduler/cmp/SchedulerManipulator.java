@@ -114,7 +114,7 @@ public class SchedulerManipulator {
 		}
 	}
 
-	public void setManualExecute(Task task, Boolean b) {
+	void setManualExecute(Task task, Boolean b) {
 		try {
 			Integer rowid = task.getRowid();
 			JobKey jobKey = new JobKey(rowid.toString());
