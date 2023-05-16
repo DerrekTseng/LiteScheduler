@@ -6,7 +6,7 @@
 		<Property name="date">%d{yyyy-MM-dd}</Property>
 		<Property name="destination">${sys:lite.scheduler.work.dir}/logs</Property>
 		<Property name="pattern.web">[%d{yyyy-MM-dd HH:mm:ss.SSS}] [%p] (%F:%M:%L) - %m%n</Property>
-		<Property name="pattern.scheduler">[%d{yyy-MM-dd HH:mm:ss.SSS}] [%p] [%X{taskId}] (%F:%M:%L) - %m%n</Property>
+		<Property name="pattern.task">[%d{yyy-MM-dd HH:mm:ss.SSS}] [%p] [%X{taskId}] (%F:%M:%L) - %m%n</Property>
 	</Properties>
 
 	<Appenders>
@@ -21,9 +21,9 @@
 					</Console>
 				</Route>
 				<Route>
-					<Console name="SchedulerConsoleLogRouting" target="SYSTEM_OUT">
+					<Console name="TaskConsoleLogRouting" target="SYSTEM_OUT">
 						<PatternLayout>
-							<Pattern>${pattern.scheduler}</Pattern>
+							<Pattern>${pattern.task}</Pattern>
 						</PatternLayout>
 					</Console>
 				</Route>
@@ -51,18 +51,18 @@
 					</RollingFile>
 				</Route>
 				<Route>
-					<RollingFile name="SchedulerFileLogRouting" 
+					<RollingFile name="TaskFileLogRouting" 
 						immediateFlush="true"
-						fileName="${destination}/scheduler/${ctx:taskId}.log" 
-						filePattern="${destination}/scheduler/${ctx:taskId}.${date}.log">
+						fileName="${destination}/tasks/${ctx:taskId}.log" 
+						filePattern="${destination}/tasks/${ctx:taskId}.${date}.log">
 						<PatternLayout>
-							<Pattern>${pattern.scheduler}</Pattern>
+							<Pattern>${pattern.task}</Pattern>
 						</PatternLayout>
 						<Policies>
 							<TimeBasedTriggeringPolicy />
 						</Policies>
 						<DefaultRolloverStrategy>
-							<Delete basePath="${destination}/scheduler/" maxDepth="1">
+							<Delete basePath="${destination}/tasks/" maxDepth="1">
 								<IfLastModified age="P30D" />
 							</Delete>
 						</DefaultRolloverStrategy>
