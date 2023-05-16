@@ -192,43 +192,6 @@ var ElementUtils = top.ElementUtils || {
 		});
 		select.innerHTML = buffer.join("");
 	},
-	cronTimeSelections: (selections = {}) => {
-		let monthOptions = [];
-		monthOptions.push({ text: "未指定", value: "-1" });
-		for (let i = 1; i < 13; i++) {
-			monthOptions.push({ text: i, value: i });
-		}
-
-		let dayOptions = [];
-		dayOptions.push({ text: "未指定", value: "-1" });
-		for (let i = 1; i < 32; i++) {
-			dayOptions.push({ text: i, value: i });
-		}
-
-		let hourOptions = [];
-		hourOptions.push({ text: "未指定", value: "-1" });
-		for (let i = 0; i < 24; i++) {
-			hourOptions.push({ text: i, value: i });
-		}
-
-		let minuteOptions = [];
-		minuteOptions.push({ text: "未指定", value: "-1" });
-		for (let i = 0; i < 60; i++) {
-			minuteOptions.push({ text: i, value: i });
-		}
-
-		let secondOptions = [];
-		secondOptions.push({ text: "未指定", value: "-1" });
-		for (let i = 0; i < 60; i++) {
-			secondOptions.push({ text: i, value: i });
-		}
-
-		ElementUtils.selectOptions(selections.month.dom, monthOptions, selections.month.value);
-		ElementUtils.selectOptions(selections.day.dom, monthOptions, selections.day.value);
-		ElementUtils.selectOptions(selections.hour.dom, monthOptions, selections.hour.value);
-		ElementUtils.selectOptions(selections.minute.dom, monthOptions, selections.minute.value);
-		ElementUtils.selectOptions(selections.second.dom, monthOptions, selections.second.value);
-	},
 	renderTable: (options = {}) => {
 		let $table = options.table || ElementUtils.createElement("<table></table>");
 		let captions = options.captions || [];
@@ -292,20 +255,6 @@ var ElementUtils = top.ElementUtils || {
 		return `
 			<button ${attrs} type="button" class="btn ${color} ${size} ${clazz}" ${click}>
 				<i class="${icon}"></i>
-			</button>
-		`;
-	},
-	textButtonHtml: (options = {}) => {
-		let attrs = options.attrs ? options.attrs : "";
-		let color = options.color ? `btn-${options.color}` : "";
-		let size = options.size ? `btn-${options.size}` : "";
-		let text = options.text ? options.text : "";
-		let click = options.click ? `onclick="${options.click}"` : "";
-		let clazz = options.clazz ? options.clazz : "";
-
-		return `
-			<button ${attrs} type="button" class="btn ${color} ${size} ${clazz}" ${click}>
-				${text}
 			</button>
 		`;
 	},

@@ -5,6 +5,7 @@ import java.util.Properties;
 import javax.sql.DataSource;
 
 import org.apache.commons.dbcp2.BasicDataSource;
+import org.apache.commons.lang3.StringUtils;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.impl.StdSchedulerFactory;
@@ -36,7 +37,10 @@ public class LiteSchedulerConfiguration implements WebMvcConfigurer {
 	@Bean
 	ServletWebServerFactory servletWebServerFactory() {
 		TomcatServletWebServerFactory factory = new TomcatServletWebServerFactory();
-		factory.setContextPath("/" + env.getProperty("spring.application.name").trim());
+		String springApplicationName = env.getProperty("spring.application.name").trim();
+		if (StringUtils.isNotEmpty(springApplicationName)) {
+			factory.setContextPath("/" + springApplicationName);
+		}
 		return factory;
 	}
 
