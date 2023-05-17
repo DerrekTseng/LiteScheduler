@@ -56,6 +56,12 @@
 > 
 > 開啟 `applicationContext.xml` 修改 `<context:component-scan base-package="com.custom" />` 內 base-package 的值為自己客製化的 package。
 >
+#### 然後新增 .properties 設定檔，這裡使用 `dev.properties` 為範例
+> ```
+> mysql.url=jdbc:mysql://localhost:3306/example
+> mysql.username=sa
+> mysql.password=sa
+> ```
 #### 緊接著修改 properties 設定檔位置
 > ``` 
 >	<util:list id="customProperties" value-type="org.springframework.core.io.Resource">
@@ -68,6 +74,7 @@
 > 第二個 `file:${lite.scheduler.work.dir}/prd.properties` 內的 `lite.scheduler.work.dir` 參數則會指向
 > 1. 在 Eclipse 環境指向 `System.getProperty("user.dir")`
 > 2. 在部屬 WAR 檔至 Tomcat 環境指向 `System.getProperty("catalina.base")`
+>
 #### 再來開啟 `pom.xml` 加入 JDBC Driver，這裡使用 MySQL 為範例，如有使用其他 Driver 時也一併將依賴加入。
 > ```
 > <dependency>
