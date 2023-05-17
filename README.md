@@ -843,11 +843,52 @@
 > </beans>
 > ```
 ## 工作排程開發
-
-
-
-
-
+在你自己客製化的 package 建立一支 Class，這裡使用 `CustomExampleTask.java` 為範例。
+> ```
+>   import org.springframework.stereotype.Component;
+> 
+>   import lite.scheduler.cmp.ExecuteParamenter;
+>   import lite.scheduler.cmp.MessageWriter;
+>   import lite.scheduler.cmp.ScheduleTask;
+>   import lite.scheduler.cmp.TransactionManagers;
+>   import lombok.extern.slf4j.Slf4j;
+> 
+>   @Slf4j
+>   @Component
+>   @TransactionManagers({ "mysqlTransactionManager"})
+>   public class CustomExampleTask implements ScheduleTask {
+> 
+>     @Override
+>     public void execute(ExecuteParamenter executeParamenter, MessageWriter messageWriter) throws Exception {
+>       log.info("Hello World");
+>     }
+> 
+> }
+> 
+> ```
+> 實作 `lite.scheduler.cmp.ScheduleTask`，並在上方標記 `@Component`。
+> 
+> 關於 `@TransactionManagers`，此註記是告知該工作需要使用那些`事務交易管理器`。
+> 
+> 如果該排程未標記 `@TransactionManagers`，系統將會使用所有有被定義的 `TransactionManager`，包含 LiteScheduler 本身使用的 'coreTransactionManager'。
+> 
+> 為了效能最佳化，建議是在所有的`排程 Class`上方註記 `@TransactionManagers`。
+> 
+> 另外，`execute(ExecuteParamenter executeParamenter, MessageWriter messageWriter)` 中的第一個參數 `ExecuteParamenter executeParamenter`，
+>
+> 可以取得「全域參數」與「任務參數 」
+> ```
+> Map<String, String> globleParameterMap = executeParamenter.getGlobleParameterMap();
+> Map<String, String> taskParameterMap = executeParamenter.getTaskParameterMap();
+> ```
+> 或是可以直接取值
+> ```
+> String data1 = executeParamenter.getGlobleParamenter("key");
+> String data2 = executeParamenter.getTaskParamenter("key");
+> ```
+> 但要注意的是，ParameterMap 是 `unmodifiableMap` 不允許修改。
+> 
+> 關於第二個參數 `MessageWriter messageWriter`，此物件是專門寫入訊息至「任務歷程」內，且與工作內的 Transaction 分離，就算該工作拋出例外導致 rollback，該 messageWriter 仍會儲存。
 
 
 
