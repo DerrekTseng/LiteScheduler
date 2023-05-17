@@ -41,7 +41,7 @@
 > 3. 按下「執行時間」最右邊的日曆按鈕則可以選擇執行時間
 >> ![03](https://github.com/DerrekTseng/LiteScheduler/assets/32017127/a344e584-a56c-4719-a468-549fdfffb55d)
 >
-> 4. 任務明細，可以編輯部分的資料且可以設定「任務參數」讓該任務排程可以讓參數動態化
+> 4. 任務明細，可以編輯部分的資料且可以設定「任務參數」讓該任務排程可以參數動態化
 >> ![04](https://github.com/DerrekTseng/LiteScheduler/assets/32017127/97e1dc20-5cdb-4034-8fd7-bd8b2dbdec09)
 >
 > 5. 全域參數，也可以在任務列表左上角中設定全域的參數，讓所有任務排程都可以讀取到
@@ -50,7 +50,7 @@
 > 6. 任務歷程，可以查看該任務的執行狀況，該次執行所使用的參數等等
 >> ![06](https://github.com/DerrekTseng/LiteScheduler/assets/32017127/1e3f31bd-b270-44e5-9bdb-98345232ae8f)
 
-
+## 開發說明
 
 
 
