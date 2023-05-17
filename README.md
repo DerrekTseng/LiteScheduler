@@ -31,7 +31,7 @@
 >> 1. apache commons
 
 ## 功能介紹
-程式啟動後用瀏覽器訪問`http://localhost:8080/LiteScheduler`
+程式啟動後用瀏覽器訪問 `http://localhost:8080/LiteScheduler`
 > 1. 主畫面，其中左上角的圖示功能為「新增排程」、「重新整理」與「全域參數」
 >> ![01](https://github.com/DerrekTseng/LiteScheduler/assets/32017127/8a4bdd15-936f-4236-9015-f892f4283136)
 > 
@@ -896,6 +896,22 @@
 > 但要注意的是，ParameterMap 是 `unmodifiableMap` 不允許修改。
 > 
 > 關於第二個參數 `MessageWriter messageWriter`，此物件是專門寫入訊息至「任務歷程」內，且與工作內的 Transaction 分離，就算該工作拋出例外導致 rollback，該 messageWriter 仍會儲存。
+## 部屬說明
+### 補充說明
+> 在 `application.properties` 內的 `spring.application.name` 會反應至 url 上，也就是說會註冊至 `context-path`，
+> 
+> 如果將 `spring.application.name` 設置為空值 `spring.application.name=`，這時在 Eclipse 啟動時的首頁 url 則會變成 `http://localhost:8080`。
+>
+> 但如果是部屬 WAR 檔至 Tomcat 時，`context-path` 是取決於 WAR 檔的檔案名稱，不會受 `spring.application.name` 影響。
+>   
+> 如要部屬 WAR 檔的話就在 Eclipse 上對著專案按下右鍵 > 選擇 Run As > Maven Build 。 在 Goals 欄位上，輸入 `clean package` 即可。
+>
+> 如果要變更 WAR 檔的檔案名稱，開啟 `pom.xml` 找到 '<finalName>LiteScheduler</finalName>'，將 `finalName` 內的值改成你希望的檔名。
+### 部屬設定檔  
+> 前面「開發說明」中的第一項 「基本設定」有提到，`file:${lite.scheduler.work.dir}/prd.properties` 在部屬 WAR 檔至 Tomcat 環境指向 `System.getProperty("catalina.base")`。
+>
+> 在 Tomcat 目錄底下(與`bin、conf、lib、logs、webapps`同一層)，建立 `prd.properties`，並將正式環境的設定放入。
+# 感謝您耐心看完
 
 
 
