@@ -84,7 +84,7 @@
 > </dependency>
 > ```
 ### 2. 資料庫連線
-這裡會依需講解 Java Based 或 XML Based 的個別設定方式
+這裡會依序講解 Java Based 或 XML Based 的個別設定方式
 1. Spring Data JDBC Template
 1. Spring Data JAP Hibernate
 1. Spring MyBatis
