@@ -371,14 +371,14 @@ public class WebService {
 
 		HistoryParameter historyParameter = new HistoryParameter();
 
-		historyParameter.setGlobleParameter(executeParamenter.getGlobleParameter().entrySet().stream().map(entry -> {
+		historyParameter.setGlobleParameter(executeParamenter.getGlobleParameterMap().entrySet().stream().map(entry -> {
 			Parameter parameter = new Parameter();
 			parameter.setName(entry.getKey());
 			parameter.setData(entry.getValue());
 			return parameter;
 		}).collect(Collectors.toList()));
 
-		historyParameter.setTaskParameter(executeParamenter.getTaskParameter().entrySet().stream().map(entry -> {
+		historyParameter.setTaskParameter(executeParamenter.getGlobleParameterMap().entrySet().stream().map(entry -> {
 			Parameter parameter = new Parameter();
 			parameter.setName(entry.getKey());
 			parameter.setData(entry.getValue());

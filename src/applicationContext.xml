@@ -10,24 +10,6 @@
 	 http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
 	 http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
 	
-	<!-- 掃描的 package -->
-	<context:component-scan base-package="com.custom" />
-	 
-	<!-- 讀取客製化 Property 檔 -->
-	<!-- 「lite.scheduler.work.dir」 參數，在 Eclipse 環境下會是指向專案目錄、在部屬 War 檔的環境則是指向 Tomcat 的目錄  -->
-	<util:list id="customProperties" value-type="org.springframework.core.io.Resource">
-		<!-- 依序讀取，後面的 properties 如果有相同的 key 則會取代前面的。 -->
-		<value>classpath:/dev.properties</value>
-		<value>file:${lite.scheduler.work.dir}/prd.properties</value>
-	</util:list>
 	
-	<!-- =====Spring Data JPA 範例===== -->
-	<import resource="spring-data-jpa.xml" />
-	
-	<!-- =====Spring Data JDBC 範例==== -->
-	<import resource="spring-data-jdbc.xml" />
-	
-	<!-- =====Spring Data MyBatis 範例==== -->
-	<import resource="spring-data-mybatis.xml" />
 	 
 </beans>
