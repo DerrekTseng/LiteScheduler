@@ -149,7 +149,7 @@
 #### Spring Data JDBC Template XML Based Configuration
 這裡有兩種方式
 1. 第一種是直接在 `applicationContext.xml` 中加入
-2. 第二種是建立一個新的 xml 檔案，然後在 `applicationContext.xml` 內加入 `<import resource="yourXmlConfig.xml" />`
+2. 第二種是建立一個新的 xml 檔案，然後在 `applicationContext.xml` 內加入 `<import resource="dataSource.xml" />`
 > 這裡附上第二種方式的 xml 設定內容
 > ```
 > <?xml version="1.0" encoding="UTF-8"?>
@@ -263,7 +263,7 @@
 #### Spring Data JAP Hibernate XML Based Configuration
 這裡有兩種方式
 1. 第一種是直接在 `applicationContext.xml` 中加入
-2. 第二種是建立一個新的 xml 檔案，然後在 `applicationContext.xml` 內加入 `<import resource="yourXmlConfig.xml" />`
+2. 第二種是建立一個新的 xml 檔案，然後在 `applicationContext.xml` 內加入 `<import resource="dataSource.xml" />`
 > 這裡附上第二種方式的 xml 設定內容
 > ```
 > <?xml version="1.0" encoding="UTF-8"?>
@@ -790,7 +790,7 @@
 #### Spring MyBatis XML Based Configuration
 這裡有兩種方式
 1. 第一種是直接在 `applicationContext.xml` 中加入
-2. 第二種是建立一個新的 xml 檔案，然後在 `applicationContext.xml` 內加入 `<import resource="yourXmlConfig.xml" />`
+2. 第二種是建立一個新的 xml 檔案，然後在 `applicationContext.xml` 內加入 `<import resource="dataSource.xml" />`
 > 這裡附上第二種方式的 xml 設定內容
 > ```
 > <?xml version="1.0" encoding="UTF-8"?>
