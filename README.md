@@ -831,17 +831,19 @@
 > 		<property name="username" value="${mysql.username}" />
 > 		<property name="password" value="${mysql.password}" />
 > 		<property name="maxTotal" value="100"/>
-> 	    <property name="validationQuery" value="SELECT 1 FROM DUAL"/>
-> 	    <property name="maxConnLifetimeMillis" value="14400000"/>
+> 		<property name="validationQuery" value="SELECT 1 FROM DUAL"/>
+> 		<property name="maxConnLifetimeMillis" value="14400000"/>
 > 		<property name="timeBetweenEvictionRunsMillis" value="600000"/>
-> 	    <property name="removeAbandonedTimeout" value="60"/>
-> 	    <property name="minEvictableIdleTimeMillis" value="600000"/>
-> 	    <property name="removeAbandonedOnBorrow" value="true" />
->         <property name="removeAbandonedOnMaintenance" value="true" />
+> 		<property name="removeAbandonedTimeout" value="60"/>
+> 		<property name="minEvictableIdleTimeMillis" value="600000"/>
+> 		<property name="removeAbandonedOnBorrow" value="true" />
+>  		<property name="removeAbandonedOnMaintenance" value="true" />
 > 	</bean>
 > 	 
 > </beans>
 > ```
+## 工作排程開發
+
 
 
 
