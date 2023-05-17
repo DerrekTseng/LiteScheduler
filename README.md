@@ -52,11 +52,11 @@
 
 ## 開發說明
 ### 1. 基本設定
-#### 首先須在 src 中建立一個屬於自己客製化的 package，這裡使用 `com.custom` 為範例。
+#### 首先須在 src 內建立一個屬於自己客製化的 package，這裡使用 `com.custom` 為範例。
 > 
 > 開啟 `applicationContext.xml` 修改 `<context:component-scan base-package="com.custom" />` 內 base-package 的值為自己客製化的 package。
 >
-#### 然後新增 .properties 設定檔，這裡使用 `dev.properties` 為範例
+#### 然後在 src 內新增 .properties 設定檔，這裡使用 `dev.properties` 為範例
 > ```
 > mysql.url=jdbc:mysql://localhost:3306/example
 > mysql.username=sa
@@ -90,14 +90,7 @@
 1. Spring MyBatis
 #### 1. Spring Data JDBC Template
 ##### 前置設定
-> 1. 開啟 `pom.xml` 加入依賴
-> ```
-> <dependency>
->    <groupId>org.springframework.boot</groupId>
->    <artifactId>spring-boot-starter-data-jdbc</artifactId>
-> </dependency>
-> ```
-> 2. 開啟 `LiteSchedulerApplication.java` 在 class 上方 `@SpringBootApplication` 的 `exclude` 內加入 `JdbcTemplateAutoConfiguration.class` 
+> 無
 #### Spring Data JDBC Template Java Based Configuration
 > 在你自己客製化的 package 內任一位置建立一個 CustomConfiguration.java
 > ```
