@@ -1,88 +1,88 @@
 <?xml version="1.0" encoding="UTF-8" ?>  
 <!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN"  
-"http://mybatis.org/dtd/mybatis-3-config.dtd">  
-<configuration>  
-  	
-    <!-- 配置mybatis的緩存，延遲加載等等一系列屬性 -->  
-    <settings>  
-    	<!-- mybatis 3 的所有參數 請參考  https://mybatis.org/mybatis-3/zh/configuration.html		-->
-    	
-        <!-- 全局映射器啟用緩存 -->  
-        <setting name="cacheEnabled" value="false" /> 
-         
-        <!-- 查詢時，關閉關聯對象即時加載以提高性能 -->  
-        <setting name="lazyLoadingEnabled" value="true" />
-          
-        <!-- 設置關聯對象加載的形態，此處為按需加載字段(加載字段由SQL指 定)，不會加載關聯表的所有字段，以提高性能 -->  
-        <setting name="aggressiveLazyLoading" value="false" />
-          
-        <!-- 對於未知的SQL查詢，允許返回不同的結果集以達到通用的效果 -->  
-        <setting name="multipleResultSetsEnabled" value="true" />
-          
-        <!-- 允許使用列標籤代替列名 -->  
-        <setting name="useColumnLabel" value="true" />
-    
-        <!-- 給予被嵌套的resultMap以字段-屬性的映射支持 -->  
-        <setting name="autoMappingBehavior" value="FULL" />  
-        
-        <!-- 對於批量更新操作緩存SQL以提高性能 (SIMPLE REUSE BATCH)-->  
-        <setting name="defaultExecutorType" value="SIMPLE" />
-          
-        <!-- 數據庫超過2500秒仍未響應則超時 -->  
-        <setting name="defaultStatementTimeout" value="2500" />
-         
-        <!--null set data in hashmap" -->
-        <setting name="callSettersOnNulls" value="true"/>
-        
-        <!-- 當 一筆 row data 為空的時候，還是回傳整個物件，而非 null ,mybatis 3.4.2 版後才會有該參數-->
-        <setting name="returnInstanceForEmptyRow" value="true" />
-        
-    </settings>  
-    
-    
-    <plugins>  
+"http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+
+	<!-- 配置mybatis的緩存，延遲加載等等一系列屬性 -->
+	<settings>
+		<!-- mybatis 3 的所有參數 請參考 https://mybatis.org/mybatis-3/zh/configuration.html -->
+
+		<!-- 全局映射器啟用緩存 -->
+		<setting name="cacheEnabled" value="false" />
+
+		<!-- 查詢時，關閉關聯對象即時加載以提高性能 -->
+		<setting name="lazyLoadingEnabled" value="true" />
+
+		<!-- 設置關聯對象加載的形態，此處為按需加載字段(加載字段由SQL指 定)，不會加載關聯表的所有字段，以提高性能 -->
+		<setting name="aggressiveLazyLoading" value="false" />
+
+		<!-- 對於未知的SQL查詢，允許返回不同的結果集以達到通用的效果 -->
+		<setting name="multipleResultSetsEnabled" value="true" />
+
+		<!-- 允許使用列標籤代替列名 -->
+		<setting name="useColumnLabel" value="true" />
+
+		<!-- 給予被嵌套的resultMap以字段-屬性的映射支持 -->
+		<setting name="autoMappingBehavior" value="FULL" />
+
+		<!-- 對於批量更新操作緩存SQL以提高性能 (SIMPLE REUSE BATCH) -->
+		<setting name="defaultExecutorType" value="SIMPLE" />
+
+		<!-- 數據庫超過2500秒仍未響應則超時 -->
+		<setting name="defaultStatementTimeout" value="2500" />
+
+		<!--null set data in hashmap" -->
+		<setting name="callSettersOnNulls" value="true" />
+
+		<!-- 當 一筆 row data 為空的時候，還是回傳整個物件，而非 null ,mybatis 3.4.2 版後才會有該參數 -->
+		<setting name="returnInstanceForEmptyRow" value="true" />
+
+	</settings>
+
+
+	<plugins>
 		<!-- 註冊 mybatis 分頁攔截器，實現物理分頁 -->
-	    <plugin interceptor="com.github.pagehelper.PageInterceptor">
-	    
+		<plugin interceptor="com.github.pagehelper.PageInterceptor">
+
 			<!-- oracle,mysql,mariadb,sqlite,hsqldb,postgresql,db2,sqlserver,informix -->
 			<!-- <property name="dialect" value="sqlserver"/> -->
-	    	 
+
 			<!-- 該參數默認為false -->
-	        <!-- 設置為true時，會將RowBounds第一個參數offset當成pageNum頁碼使用 -->
-	        <!-- 和startPage中的pageNum效果一樣-->
-			<property name="offsetAsPageNum" value="true"/>	
-			
+			<!-- 設置為true時，會將RowBounds第一個參數offset當成pageNum頁碼使用 -->
+			<!-- 和startPage中的pageNum效果一樣 -->
+			<property name="offsetAsPageNum" value="true" />
+
 			<!-- 該參數默認為false -->
-	        <!-- 設置為true時，使用RowBounds分頁會進行count查詢 -->			    
-	        <property name="rowBoundsWithCount" value="true"/>	
-	        
-	         <!-- 設置為true時，如果pageSize=0或者RowBounds.limit = 0就會查詢出全部的結果 -->
-	        <!-- （相當於沒有執行分頁查詢，但是返回結果仍然是Page類型）-->			    
-	        <property name="pageSizeZero" value="true"/>		
-	        
+			<!-- 設置為true時，使用RowBounds分頁會進行count查詢 -->
+			<property name="rowBoundsWithCount" value="true" />
+
+			<!-- 設置為true時，如果pageSize=0或者RowBounds.limit = 0就會查詢出全部的結果 -->
+			<!-- （相當於沒有執行分頁查詢，但是返回結果仍然是Page類型） -->
+			<property name="pageSizeZero" value="true" />
+
 			<!-- 3.3.0版本可用 - 分頁參數合理化，默認false禁用 -->
-	        <!-- 啟用合理化時，如果pageNum<1會查詢第一頁，如果pageNum>pages會查詢最後一頁 -->
-	        <!-- 禁用合理化時，如果pageNum<1或pageNum>pages會返回空數據 -->		  
-	        <property name="reasonable" value="false"/>		
-	        	
+			<!-- 啟用合理化時，如果pageNum<1會查詢第一頁，如果pageNum>pages會查詢最後一頁 -->
+			<!-- 禁用合理化時，如果pageNum<1或pageNum>pages會返回空數據 -->
+			<property name="reasonable" value="false" />
+
 			<!-- 3.5.0版本可用 - 為了支持startPage(Object params)方法 -->
-	        <!-- 增加了一個`params`參數來配置參數映射，用於從Map或ServletRequest中取值 -->
-	        <!-- 可以配置pageNum,pageSize,count,pageSizeZero,reasonable,orderBy,不配置映射的用默認值 -->
-	        <!-- 不理解該含義的前提下，不要隨便複製該配置 -->	       
-	        <property name="params" value="pageNum=start;pageSize=limit;"/>		
-	        
-	         <!-- 支持通過Mapper接口參數來傳遞分頁參數 -->		        
-	        <property name="supportMethodsArguments" value="true"/>	
-	        
-	        <!-- always總是返回PageInfo類型,check檢查返回類型是否為PageInfo,none返回Page -->			        
-	        <property name="returnPageInfo" value="check"/>
-	    </plugin>
-  	</plugins> 
-    
-    
-    <!-- 全局別名設置，在映射文件中只需寫別名，而不必寫出整個類路徑
-     <mappers>
-		<package name="com.custom.mybatis.mapper"/>
-     </mappers>
-    -->  
+			<!-- 增加了一個`params`參數來配置參數映射，用於從Map或ServletRequest中取值 -->
+			<!-- 可以配置pageNum,pageSize,count,pageSizeZero,reasonable,orderBy,不配置映射的用默認值 -->
+			<!-- 不理解該含義的前提下，不要隨便複製該配置 -->
+			<property name="params" value="pageNum=start;pageSize=limit;" />
+
+			<!-- 支持通過Mapper接口參數來傳遞分頁參數 -->
+			<property name="supportMethodsArguments" value="true" />
+
+			<!-- always總是返回PageInfo類型,check檢查返回類型是否為PageInfo,none返回Page -->
+			<property name="returnPageInfo" value="check" />
+		</plugin>
+	</plugins>
+
+
+	<!-- 全局別名設置，在映射文件中只需寫別名，而不必寫出整個類路徑 -->
+	<mappers>
+		<package name="com.custom.mybatis.mapper" />
+	</mappers>
+
 </configuration>  

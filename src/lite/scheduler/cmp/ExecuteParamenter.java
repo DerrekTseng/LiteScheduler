@@ -21,7 +21,7 @@ public class ExecuteParamenter {
 	Map<String, String> globleParameter;
 	Map<String, String> taskParameter;
 
-	public void readGlobleParameters(List<GlobleParameter> globleParameters) {
+	void readGlobleParameters(List<GlobleParameter> globleParameters) {
 		Map<String, String> _globleParameter = new HashMap<>();
 		globleParameters.stream().forEach(p -> {
 			String name = p.getName();
@@ -31,7 +31,7 @@ public class ExecuteParamenter {
 		this.globleParameter = Collections.unmodifiableMap(_globleParameter);
 	}
 
-	public void readTaskParameters(List<TaskParameter> taskParameters) {
+	void readTaskParameters(List<TaskParameter> taskParameters) {
 		Map<String, String> _taskParameter = new HashMap<>();
 		taskParameters.stream().forEach(p -> {
 			String name = p.getName();

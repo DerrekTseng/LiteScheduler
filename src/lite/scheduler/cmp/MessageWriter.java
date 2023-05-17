@@ -4,6 +4,9 @@ import java.util.function.Consumer;
 
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * 歷程訊息 Writer
+ */
 @Slf4j
 public class MessageWriter {
 
@@ -13,11 +16,21 @@ public class MessageWriter {
 		this.consumer = consumer;
 	}
 
+	/**
+	 * 寫入文字至歷程訊息
+	 * 
+	 * @param line
+	 */
 	public void writeLine(String line) {
 		log.info(line);
 		consumer.accept(line);
 	}
 
+	/**
+	 * 寫入 Throwable 至歷程訊息
+	 * 
+	 * @param line
+	 */
 	public void writeThrowable(Throwable throwable) {
 		if (throwable == null) {
 			return;

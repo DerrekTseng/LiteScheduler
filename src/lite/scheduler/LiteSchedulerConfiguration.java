@@ -41,7 +41,7 @@ import lite.scheduler.cmp.CustomPropertyStored;
 @EnableJpaRepositories(basePackages = "lite.scheduler.repo", entityManagerFactoryRef = "coreEntityManagerFactory", transactionManagerRef = "coreTransactionManager")
 public class LiteSchedulerConfiguration implements WebMvcConfigurer {
 
-	@Autowired
+	@Autowired(required = false)
 	@Qualifier("customProperties")
 	List<Resource[]> customProperties;
 
@@ -144,16 +144,24 @@ public class LiteSchedulerConfiguration implements WebMvcConfigurer {
 	@Primary
 	@Qualifier("customPropertyStored")
 	CustomPropertyStored customPropertyStored() throws IOException {
-		return new CustomPropertyStored(customProperties.toArray(new Resource[customProperties.size()]));
+		if (customProperties == null) {
+			return new CustomPropertyStored(new Resource[0]);
+		} else {
+			return new CustomPropertyStored(customProperties.toArray(new Resource[customProperties.size()]));
+		}
 	}
 
 	@Bean
 	static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer(ApplicationContext applicationContext) {
 		PropertySourcesPlaceholderConfigurer pspc = new PropertySourcesPlaceholderConfigurer();
 		pspc.setIgnoreResourceNotFound(true);
-		@SuppressWarnings("unchecked")
-		List<Resource[]> customProperties = (List<Resource[]>) applicationContext.getBean("customProperties");
-		pspc.setLocations(customProperties.toArray(new Resource[customProperties.size()]));
+		if (applicationContext.containsBean("customProperties")) {
+			@SuppressWarnings("unchecked")
+			List<Resource[]> customProperties = (List<Resource[]>) applicationContext.getBean("customProperties");
+			pspc.setLocations(customProperties.toArray(new Resource[customProperties.size()]));
+		} else {
+			pspc.setLocations(new Resource[0]);
+		}
 		pspc.setFileEncoding("utf-8");
 		return pspc;
 	}
