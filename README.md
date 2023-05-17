@@ -806,7 +806,7 @@
 > 	</bean>
 > 	
 > 	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
-> 	    <property name="basePackage" value="com.custom.mybatis.mapper" />
+> 	    <property name="basePackage" value="com.custom.mapper" />
 > 	    <property name="sqlSessionFactoryBeanName" value="mysqlSqlSessionFactory" />
 > 	</bean>
 > 	
