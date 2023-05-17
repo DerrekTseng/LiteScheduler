@@ -914,10 +914,3 @@
 ### logs 記錄檔
 1. 部屬在 Tomcat 上，有關於 LiteScheduler 本身的 log 會記錄在 `tomcat/logs/lite-scheduler.log` 內，而排程的 log 則是會記錄在 tomcat/logs/tasks/${任務代號}.log
 2. 如果是運行在 Eclipse 上，會直接產生再 project 的 logs 資料夾裡面。
-# 感謝您耐心看完
-
-
-
-
-
-
