@@ -358,8 +358,6 @@
 > 4. 在你自己客製化的 package 內，增加兩個 package `model` 與 `mapper`，這裡使用 `com.custom.model` 與 `com.custom.mapper` 為範例
 > 5. 使用 mybatis-generator 自動產生 `model class` 與 `mapper class`，這裡提供一個 Java Besed 的產生方式範例，但連線資訊需手動修改
 > ```
-> package lite.dao;
-> 
 > import java.io.File;
 > import java.util.ArrayList;
 > import java.util.HashSet;
@@ -623,11 +621,227 @@
 > 	}
 > }
 > ```
+> 6. 在 src 底下新增一個 `mybatis-config.xml` 設定檔
+> ```
+> <?xml version="1.0" encoding="UTF-8" ?>  
+> <!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN"  
+> "http://mybatis.org/dtd/mybatis-3-config.dtd">
+> <configuration>
+> 
+> 	<!-- 配置mybatis的緩存，延遲加載等等一系列屬性 -->
+> 	<settings>
+> 		<!-- mybatis 3 的所有參數 請參考 https://mybatis.org/mybatis-3/zh/configuration.html -->
+> 
+> 		<!-- 全局映射器啟用緩存 -->
+> 		<setting name="cacheEnabled" value="false" />
+> 
+> 		<!-- 查詢時，關閉關聯對象即時加載以提高性能 -->
+> 		<setting name="lazyLoadingEnabled" value="true" />
+> 
+> 		<!-- 設置關聯對象加載的形態，此處為按需加載字段(加載字段由SQL指 定)，不會加載關聯表的所有字段，以提高性能 -->
+> 		<setting name="aggressiveLazyLoading" value="false" />
+> 
+> 		<!-- 對於未知的SQL查詢，允許返回不同的結果集以達到通用的效果 -->
+> 		<setting name="multipleResultSetsEnabled" value="true" />
+> 
+> 		<!-- 允許使用列標籤代替列名 -->
+> 		<setting name="useColumnLabel" value="true" />
+> 
+> 		<!-- 給予被嵌套的resultMap以字段-屬性的映射支持 -->
+> 		<setting name="autoMappingBehavior" value="FULL" />
+> 
+> 		<!-- 對於批量更新操作緩存SQL以提高性能 (SIMPLE REUSE BATCH) -->
+> 		<setting name="defaultExecutorType" value="SIMPLE" />
+> 
+> 		<!-- 數據庫超過2500秒仍未響應則超時 -->
+> 		<setting name="defaultStatementTimeout" value="2500" />
+> 
+> 		<!--null set data in hashmap" -->
+> 		<setting name="callSettersOnNulls" value="true" />
+> 
+> 		<!-- 當 一筆 row data 為空的時候，還是回傳整個物件，而非 null ,mybatis 3.4.2 版後才會有該參數 -->
+> 		<setting name="returnInstanceForEmptyRow" value="true" />
+> 
+> 	</settings>
+> 
+> 
+> 	<plugins>
+> 		<!-- 註冊 mybatis 分頁攔截器，實現物理分頁 -->
+> 		<plugin interceptor="com.github.pagehelper.PageInterceptor">
+> 
+> 			<!-- oracle,mysql,mariadb,sqlite,hsqldb,postgresql,db2,sqlserver,informix -->
+> 			<!-- <property name="dialect" value="sqlserver"/> -->
+> 
+> 			<!-- 該參數默認為false -->
+> 			<!-- 設置為true時，會將RowBounds第一個參數offset當成pageNum頁碼使用 -->
+> 			<!-- 和startPage中的pageNum效果一樣 -->
+> 			<property name="offsetAsPageNum" value="true" />
+> 
+> 			<!-- 該參數默認為false -->
+> 			<!-- 設置為true時，使用RowBounds分頁會進行count查詢 -->
+> 			<property name="rowBoundsWithCount" value="true" />
+> 
+> 			<!-- 設置為true時，如果pageSize=0或者RowBounds.limit = 0就會查詢出全部的結果 -->
+> 			<!-- （相當於沒有執行分頁查詢，但是返回結果仍然是Page類型） -->
+> 			<property name="pageSizeZero" value="true" />
+> 
+> 			<!-- 3.3.0版本可用 - 分頁參數合理化，默認false禁用 -->
+> 			<!-- 啟用合理化時，如果pageNum<1會查詢第一頁，如果pageNum>pages會查詢最後一頁 -->
+> 			<!-- 禁用合理化時，如果pageNum<1或pageNum>pages會返回空數據 -->
+> 			<property name="reasonable" value="false" />
+> 
+> 			<!-- 3.5.0版本可用 - 為了支持startPage(Object params)方法 -->
+> 			<!-- 增加了一個`params`參數來配置參數映射，用於從Map或ServletRequest中取值 -->
+> 			<!-- 可以配置pageNum,pageSize,count,pageSizeZero,reasonable,orderBy,不配置映射的用默認值 -->
+> 			<!-- 不理解該含義的前提下，不要隨便複製該配置 -->
+> 			<property name="params" value="pageNum=start;pageSize=limit;" />
+> 
+> 			<!-- 支持通過Mapper接口參數來傳遞分頁參數 -->
+> 			<property name="supportMethodsArguments" value="true" />
+> 
+> 			<!-- always總是返回PageInfo類型,check檢查返回類型是否為PageInfo,none返回Page -->
+> 			<property name="returnPageInfo" value="check" />
+> 		</plugin>
+> 	</plugins>
+> 
+> 
+> 	<!-- 全局別名設置，在映射文件中只需寫別名，而不必寫出整個類路徑 -->
+> 	<mappers>
+> 		<package name="com.custom.mapper" />
+> 	</mappers>
+> 
+> </configuration>  
+> ```
 #### Spring MyBatis Java Based Configuration
-
+> 在你自己客製化的 package 內任一位置建立一個 CustomConfiguration.java
+> ```
+> import java.io.IOException;
+> 
+> import javax.sql.DataSource;
+> 
+> import org.apache.commons.dbcp2.BasicDataSource;
+> import org.mybatis.spring.SqlSessionFactoryBean;
+> import org.mybatis.spring.SqlSessionTemplate;
+> import org.mybatis.spring.annotation.MapperScan;
+> import org.springframework.beans.factory.annotation.Autowired;
+> import org.springframework.beans.factory.annotation.Qualifier;
+> import org.springframework.context.annotation.Bean;
+> import org.springframework.context.annotation.Configuration;
+> import org.springframework.core.io.ClassPathResource;
+> import org.springframework.core.io.Resource;
+> import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+> import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+> 
+> import lite.scheduler.cmp.CustomPropertyStored;
+> 
+> @Configuration
+> @MapperScan(basePackages = "com.custom.mapper", sqlSessionFactoryRef = "mysqlSqlSessionFactory")
+> public class CustomConfiguration {
+> 
+> 	@Autowired
+> 	CustomPropertyStored customPropertyStored;
+> 
+> 	@Bean
+> 	@Qualifier("mysqlTransactionManager")
+> 	DataSourceTransactionManager mysqlTransactionManager() {
+> 		DataSourceTransactionManager dm = new DataSourceTransactionManager();
+> 		dm.setDataSource(mysqlDataSource());
+> 		return dm;
+> 	}
+> 
+> 	@Bean
+> 	@Qualifier("mysqlSqlSessionFactory")
+> 	SqlSessionFactoryBean mysqlSqlSessionFactory() throws IOException {
+> 		SqlSessionFactoryBean sqlSessionFactoryBean = new SqlSessionFactoryBean();
+> 		sqlSessionFactoryBean.setDataSource(mysqlDataSource());
+> 		sqlSessionFactoryBean.setConfigLocation(new ClassPathResource("mybatis-config.xml"));
+> 		Resource[] mapperLocations = new PathMatchingResourcePatternResolver().getResources("classpath:mybatis-mapper/*.xml, classpath:mybatis-mapper/**/*.xml");
+> 		sqlSessionFactoryBean.setMapperLocations(mapperLocations);
+> 		return sqlSessionFactoryBean;
+> 	}
+> 
+> 	@Bean
+> 	@Qualifier("mysqlSqlSessionTemplate")
+> 	SqlSessionTemplate mysqlSqlSessionTemplate() throws IOException, Exception {
+> 		return new SqlSessionTemplate(mysqlSqlSessionFactory().getObject());
+> 	}
+> 
+> 	@Bean
+> 	@Qualifier("mysqlDataSource")
+> 	DataSource mysqlDataSource() {
+> 		BasicDataSource dataSource = new BasicDataSource();
+> 		dataSource.setDriverClassName("com.mysql.cj.jdbc.Driver");
+> 		dataSource.setUrl(customPropertyStored.getValue("mysql.url"));
+> 		dataSource.setUsername(customPropertyStored.getValue("mysql.username"));
+> 		dataSource.setPassword(customPropertyStored.getValue("mysql.password"));
+> 		dataSource.setMaxTotal(100);
+> 		dataSource.setValidationQuery("SELECT 1 FROM DUAL");
+> 		dataSource.setMaxConnLifetimeMillis(14400000);
+> 		dataSource.setTimeBetweenEvictionRunsMillis(600000);
+> 		dataSource.setRemoveAbandonedTimeout(60);
+> 		dataSource.setMinEvictableIdleTimeMillis(600000);
+> 		dataSource.setRemoveAbandonedOnBorrow(true);
+> 		dataSource.setRemoveAbandonedOnMaintenance(true);
+> 		return dataSource;
+> 	}
+> 
+> }
+> ```
 #### Spring MyBatis XML Based Configuration
-
-
+這裡有兩種方式
+1. 第一種是直接在 `applicationContext.xml` 中加入
+2. 第二種是建立一個新的 xml 檔案，然後在 `applicationContext.xml` 內加入 `<import resource="yourXmlConfig.xml" />`
+> 這裡附上第二種方式的 xml 設定內容
+> ```
+> <?xml version="1.0" encoding="UTF-8"?>
+> <beans default-autowire="byName"
+> 	xmlns="http://www.springframework.org/schema/beans"
+> 	xmlns:p="http://www.springframework.org/schema/p"
+> 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+> 	xsi:schemaLocation=
+> 	"http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+> 	
+> 	<bean id="mysqlTransactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+> 	    <property name="dataSource" ref="mysqlDataSource" />
+> 	</bean>
+> 	
+> 	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+> 	    <property name="basePackage" value="com.custom.mybatis.mapper" />
+> 	    <property name="sqlSessionFactoryBeanName" value="mysqlSqlSessionFactory" />
+> 	</bean>
+> 	
+> 	<bean id="mysqlSqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+> 	    <property name="dataSource" ref="mysqlDataSource" />
+> 	    <property name="configLocation" value="classpath:mybatis-config.xml" />
+> 	    <property name="mapperLocations">
+> 			<list>
+> 				<value>classpath:mybatis-mapper/*.xml</value>
+> 				<value>classpath:mybatis-mapper/**/*.xml</value>
+> 			</list>
+> 		</property>
+> 	</bean>
+> 	
+> 	<bean id="mysqlSqlSessionTemplate" class="org.mybatis.spring.SqlSessionTemplate">
+> 		<constructor-arg index="0" ref="mysqlSqlSessionFactory" />
+> 	</bean>
+> 		
+> 	<bean id="mysqlDataSource" class="org.apache.commons.dbcp2.BasicDataSource" destroy-method="close">
+> 		<property name="driverClassName" value="com.mysql.cj.jdbc.Driver" />
+> 		<property name="url" value="${mysql.url}" />
+> 		<property name="username" value="${mysql.username}" />
+> 		<property name="password" value="${mysql.password}" />
+> 		<property name="maxTotal" value="100"/>
+> 	    <property name="validationQuery" value="SELECT 1 FROM DUAL"/>
+> 	    <property name="maxConnLifetimeMillis" value="14400000"/>
+> 		<property name="timeBetweenEvictionRunsMillis" value="600000"/>
+> 	    <property name="removeAbandonedTimeout" value="60"/>
+> 	    <property name="minEvictableIdleTimeMillis" value="600000"/>
+> 	    <property name="removeAbandonedOnBorrow" value="true" />
+>         <property name="removeAbandonedOnMaintenance" value="true" />
+> 	</bean>
+> 	 
+> </beans>
+> ```
 
 
 
