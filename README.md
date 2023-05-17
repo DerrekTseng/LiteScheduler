@@ -911,6 +911,9 @@
 > 前面「開發說明」中的第一項 「基本設定」有提到，`file:${lite.scheduler.work.dir}/prd.properties` 在部屬 WAR 檔至 Tomcat 環境指向 `System.getProperty("catalina.base")`。
 >
 > 在 Tomcat 目錄底下(與`bin、conf、lib、logs、webapps`同一層)，建立 `prd.properties`，並將正式環境的設定放入。
+### logs 記錄檔
+1. 部屬在 Tomcat 上，有關於 LiteScheduler 本身的 log 會記錄在 `tomcat/logs/lite-scheduler.log` 內，而排程的 log 則是會記錄在 tomcat/logs/tasks/${任務代號}.log
+2. 如果是運行在 Eclipse 上，會直接產生再 project 的 logs 資料夾裡面。
 # 感謝您耐心看完
 
 
