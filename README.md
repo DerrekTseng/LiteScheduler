@@ -2,7 +2,7 @@
 ![ICO](https://github.com/DerrekTseng/LiteScheduler/assets/32017127/c76b2298-a389-42ef-840d-66638803c44d)
 
 ## 程式介紹
-這是一個由 Spring Boot Starter Parent 2.7.11 與 Quartz 搭建而成的排程伺服器模組，並使用 Maven 打包成 WAR 檔部屬在 Tomcat 中，並且支持三種資料庫連線方式：
+這是一個由 Spring Boot Starter Parent 2.7.11 與 Quartz 搭建而成的簡易排程伺服器模組，並使用 Maven 打包成 WAR 檔部屬在 Tomcat 中，並且支持三種資料庫連線方式：
 1. Spring Data JDBC Template
 1. Spring Data JAP Hibernate
 1. Spring MyBatis
