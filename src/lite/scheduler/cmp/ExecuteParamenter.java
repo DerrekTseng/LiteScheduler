@@ -18,8 +18,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ExecuteParamenter {
 
-	Map<String, String> globleParameter;
-	Map<String, String> taskParameter;
+	Map<String, String> globleParameterMap;
+	Map<String, String> taskParameterMap;
 
 	void readGlobleParameters(List<GlobleParameter> globleParameters) {
 		Map<String, String> _globleParameter = new HashMap<>();
@@ -28,7 +28,7 @@ public class ExecuteParamenter {
 			String data = p.getData();
 			_globleParameter.put(name, data);
 		});
-		this.globleParameter = Collections.unmodifiableMap(_globleParameter);
+		this.globleParameterMap = Collections.unmodifiableMap(_globleParameter);
 	}
 
 	void readTaskParameters(List<TaskParameter> taskParameters) {
@@ -38,7 +38,23 @@ public class ExecuteParamenter {
 			String data = p.getData();
 			_taskParameter.put(name, data);
 		});
-		this.taskParameter = Collections.unmodifiableMap(_taskParameter);
+		this.taskParameterMap = Collections.unmodifiableMap(_taskParameter);
+	}
+
+	public String getGlobleParamenter(String name) {
+		return getGlobleParamenter(name, null);
+	}
+
+	public String getGlobleParamenter(String name, String defaultValue) {
+		return globleParameterMap.getOrDefault(name, defaultValue);
+	}
+
+	public String getTaskParamenter(String name) {
+		return getTaskParamenter(name, null);
+	}
+
+	public String getTaskParamenter(String name, String defaultValue) {
+		return taskParameterMap.getOrDefault(name, defaultValue);
 	}
 
 }
