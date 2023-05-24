@@ -2,7 +2,7 @@
 ![ICO](https://github.com/DerrekTseng/LiteScheduler/assets/32017127/c76b2298-a389-42ef-840d-66638803c44d)
 
 ## 程式介紹
-這是一個由 Spring Boot Starter Parent 2.7.11 與 Quartz 搭建而成的排程伺服器模組，並使用 Maven 打包成 WAR 檔部屬在 Tomcat 中，並且支持三種資料庫連線方式：
+這是一個由 Spring Boot Starter Parent 2.7.11 與 Quartz 搭建而成的簡易排程伺服器模組，並使用 Maven 打包成 WAR 檔部屬在 Tomcat 中，並且支持三種資料庫連線方式：
 1. Spring Data JDBC Template
 1. Spring Data JAP Hibernate
 1. Spring MyBatis
@@ -84,7 +84,7 @@
 > </dependency>
 > ```
 ### 2. 資料庫連線
-這裡會依需講解 Java Based 或 XML Based 的個別設定方式
+這裡會依序講解 Java Based 或 XML Based 的個別設定方式
 1. Spring Data JDBC Template
 1. Spring Data JAP Hibernate
 1. Spring MyBatis
@@ -149,7 +149,7 @@
 #### Spring Data JDBC Template XML Based Configuration
 這裡有兩種方式
 1. 第一種是直接在 `applicationContext.xml` 中加入
-2. 第二種是建立一個新的 xml 檔案，然後在 `applicationContext.xml` 內加入 `<import resource="yourXmlConfig.xml" />`
+2. 第二種是建立一個新的 xml 檔案，然後在 `applicationContext.xml` 內加入 `<import resource="dataSource.xml" />`
 > 這裡附上第二種方式的 xml 設定內容
 > ```
 > <?xml version="1.0" encoding="UTF-8"?>
@@ -227,7 +227,7 @@
 > 		properties.setProperty("hibernate.dialect", "org.hibernate.dialect.MySQL8Dialect");
 > 		properties.setProperty("hibernate.format_sql", "false");
 > 		properties.setProperty("hibernate.show_sql", "false");
-> 		properties.setProperty("hibernate.hbm2ddl.auto", "update");
+> 		properties.setProperty("hibernate.hbm2ddl.auto", "validate");
 > 		em.setJpaProperties(properties);
 > 		return em;
 > 	}
@@ -263,7 +263,7 @@
 #### Spring Data JAP Hibernate XML Based Configuration
 這裡有兩種方式
 1. 第一種是直接在 `applicationContext.xml` 中加入
-2. 第二種是建立一個新的 xml 檔案，然後在 `applicationContext.xml` 內加入 `<import resource="yourXmlConfig.xml" />`
+2. 第二種是建立一個新的 xml 檔案，然後在 `applicationContext.xml` 內加入 `<import resource="dataSource.xml" />`
 > 這裡附上第二種方式的 xml 設定內容
 > ```
 > <?xml version="1.0" encoding="UTF-8"?>
@@ -790,7 +790,7 @@
 #### Spring MyBatis XML Based Configuration
 這裡有兩種方式
 1. 第一種是直接在 `applicationContext.xml` 中加入
-2. 第二種是建立一個新的 xml 檔案，然後在 `applicationContext.xml` 內加入 `<import resource="yourXmlConfig.xml" />`
+2. 第二種是建立一個新的 xml 檔案，然後在 `applicationContext.xml` 內加入 `<import resource="dataSource.xml" />`
 > 這裡附上第二種方式的 xml 設定內容
 > ```
 > <?xml version="1.0" encoding="UTF-8"?>
