@@ -8,6 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import org.springframework.core.io.Resource;
+import org.springframework.util.PropertyPlaceholderHelper;
 
 public class CustomPropertyStored {
 
@@ -20,13 +21,15 @@ public class CustomPropertyStored {
 	 * @throws IOException
 	 */
 	public CustomPropertyStored(Resource[] resources) throws IOException {
+		PropertyPlaceholderHelper helper = new PropertyPlaceholderHelper("${", "}");
+		Properties systemProperties = System.getProperties();
 		for (Resource resource : resources) {
 			if (resource.exists()) {
 				try (InputStreamReader inputStreamReader = new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8)) {
 					Properties properties = new Properties();
 					properties.load(inputStreamReader);
 					properties.forEach((key, value) -> {
-						map.put(key.toString(), value.toString());
+						map.put(key.toString(), helper.replacePlaceholders(value.toString(), systemProperties));
 					});
 				}
 			}
