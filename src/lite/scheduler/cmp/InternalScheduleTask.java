@@ -102,7 +102,7 @@ final public class InternalScheduleTask implements Job {
 				scheduleTask.internalExecute(executeParamenter, messageWriter);
 				taskHistory.setResult(ExecutionResult.Succeeded);
 			} catch (Exception e) {
-				messageWriter.writeLine(e.getMessage());
+				messageWriter.writeThrowable(e);
 				taskHistory.setResult(ExecutionResult.Failed);
 				log.error("", e);
 			} finally {

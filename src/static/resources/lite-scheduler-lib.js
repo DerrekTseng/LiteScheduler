@@ -14,7 +14,7 @@ var DialogUtils = top.DialogUtils || {
 		let title = options.title || "";
 		let text = options.text || "";
 		let okText = options.okText || "OK";
-		let callback = options.callback || function() { };
+		let callback = options.callback || (() => { });
 
 		let html = `
 			<div class="modal fade" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
@@ -55,8 +55,8 @@ var DialogUtils = top.DialogUtils || {
 		let text = options.text || "";
 		let cancelText = options.okText || "Cancel";
 		let confirmText = options.okText || "Confirm";
-		let onCancel = options.onCancel || function() { };
-		let onConfirm = options.onConfirm || function() { };
+		let onCancel = options.onCancel || (() => { });
+		let onConfirm = options.onConfirm || (() => { });
 
 		let html = `
 			<div class="modal fade" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
@@ -101,7 +101,7 @@ var DialogUtils = top.DialogUtils || {
 		let title = options.title || "";
 		let data = options.data || {};
 		let url = options.url || "";
-		let callback = options.callback || function() { };
+		let callback = options.callback || (() => { });
 
 		url = url += TextUtils.objectToQuerystring(data);
 		let id = TextUtils.randonString(16);
@@ -198,7 +198,7 @@ var ElementUtils = top.ElementUtils || {
 		let data = options.data || [];
 		let thead = options.thead || [];
 		let tbody = options.tbody || [];
-		let treach = options.treach || function() { };
+		let treach = options.treach || (() => { });
 
 		let captionsBuffer = []
 		captions.forEach(item => {
@@ -243,6 +243,129 @@ var ElementUtils = top.ElementUtils || {
 			$tbody.appendChild($tr);
 		});
 		$table.appendChild($tbody);
+	},
+	renderPager: (options = {}) => {
+		let $div = options.div || ElementUtils.createElement("<div style='display: flex; justify-content: space-between;'></div>");
+		let onEvent = options.onEvent || (() => { });
+		let pageNum = options.pageNum || 0;
+		let pageSize = options.pageSize || 10;
+		let totalPages = options.totalPages || 0;
+		let totalSize = options.totalSize || 0;
+
+		$div.innerHTML = '';
+
+		let $pagination = ElementUtils.createElement('<ul class="pagination"></ul>');
+
+		let $firstBtn = ElementUtils.createElement(
+			`
+				<li class="page-item ${pageNum === 0 ? 'disabled' : ''}">
+			      <a class="page-link none-select">
+			        <span aria-hidden="true">&laquo</span>
+			      </a>
+			    </li>
+			`
+		);
+
+		let $previousBtn = ElementUtils.createElement(
+			`
+				<li class="page-item ${pageNum === 0 ? 'disabled' : ''}">
+			      <a class="page-link none-select">
+			        <span aria-hidden="true">&lsaquo;</span>
+			      </a>
+			    </li>
+			`
+		);
+		if (pageNum != 0) {
+			$firstBtn.addEventListener('click', () => {
+				onEvent(0, pageSize)
+			});
+			$previousBtn.addEventListener('click', () => {
+				onEvent(pageNum - 1, pageSize)
+			});
+		}
+		let $nextBtn = ElementUtils.createElement(
+			`
+				<li class="page-item ${pageNum + 1 >= totalPages ? 'disabled' : ''}">
+			      <a class="page-link none-select">
+			        <span aria-hidden="true">&rsaquo;</span>
+			      </a>
+			    </li>
+			`
+		);
+		let $lastBtn = ElementUtils.createElement(
+			`
+				<li class="page-item ${pageNum + 1 >= totalPages ? 'disabled' : ''}">
+			      <a class="page-link none-select">
+			        <span aria-hidden="true">&raquo</span>
+			      </a>
+			    </li>
+			`
+		);
+		if (pageNum + 1 < totalPages) {
+			$nextBtn.addEventListener('click', () => {
+				onEvent(pageNum + 1, pageSize)
+			});
+			$lastBtn.addEventListener('click', () => {
+				onEvent(totalPages - 1, pageSize)
+			});
+		}
+
+		let $pageBtns = [];
+
+		const getPages = (totalPages, currentPage) => {
+			if (totalPages <= 5) return Array.from(Array(totalPages).keys()).map(r => { return r + 1 });
+			let diff = 0;
+			const result = [currentPage - 2, currentPage - 1, currentPage, currentPage + 1, currentPage + 2];
+			if (result[0] < 3) {
+				diff = 1 - result[0];
+			}
+			if (result.slice(-1) > totalPages - 2) {
+				diff = totalPages - result.slice(-1);
+			}
+			return result.map(r => { return r + diff });
+		}
+
+		getPages(totalPages, pageNum + 1).forEach(num => {
+			let $pageBtn = ElementUtils.createElement(
+				`
+				<li class="page-item ${num === pageNum + 1 ? 'disabled' : ''}">
+			      <a class="page-link none-select">
+			        <span aria-hidden="true">${num}</span>
+			      </a>
+			    </li>
+			`
+			);
+			if (num !== pageNum + 1) {
+				$pageBtn.addEventListener('click', () => {
+					onEvent(num - 1, pageSize)
+				});
+			}
+			$pageBtns.push($pageBtn);
+		});
+
+		$pagination.appendChild($firstBtn);
+		$pagination.appendChild($previousBtn);
+		$pageBtns.forEach($pageBtn => {
+			$pagination.appendChild($pageBtn);
+
+		});
+		$pagination.appendChild($nextBtn);
+		$pagination.appendChild($lastBtn);
+
+		let startIndex = totalSize === 0 ? 0 : (pageNum * pageSize) + 1;
+		let endIndex = (pageNum + 1) * pageSize > totalSize ? totalSize : (pageNum + 1) * pageSize;
+
+		let $info = ElementUtils.createElement(
+			`
+			<span>
+				第${pageNum + 1}頁 第${startIndex}-${endIndex}筆 共${totalSize}筆 
+			<span>
+			`
+		);
+
+		$div.appendChild($info);
+		$div.appendChild($pagination);
+
 	},
 	iconButtonHtml: (options = {}) => {
 		let attrs = options.attrs ? options.attrs : "";

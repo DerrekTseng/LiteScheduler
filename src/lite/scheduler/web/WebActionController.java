@@ -19,11 +19,12 @@ import lite.scheduler.dto.RequestRowid;
 import lite.scheduler.dto.ResponseBean;
 import lite.scheduler.dto.request.CreateParameter;
 import lite.scheduler.dto.request.CreateTask;
+import lite.scheduler.dto.request.QueryTaskHistoryStates;
 import lite.scheduler.dto.request.TaskEnable;
 import lite.scheduler.dto.request.UpdateParameter;
 import lite.scheduler.dto.request.UpdateTask;
 import lite.scheduler.dto.response.HistoryParameter;
-import lite.scheduler.dto.response.HistoryState;
+import lite.scheduler.dto.response.PagedHistoryStates;
 import lite.scheduler.dto.response.Parameter;
 import lite.scheduler.dto.response.TaskDetail;
 import lite.scheduler.dto.response.TaskState;
@@ -188,8 +189,8 @@ public class WebActionController {
 	}
 
 	@PostMapping("qryTaskHistoryStates")
-	public ResponseBean<List<HistoryState>> qryTaskHistoryStates(@Valid @RequestBody RequestRowid requestRowid) {
-		List<HistoryState> result = webService.qryTaskHistoryStates(requestRowid.getRowid());
+	public ResponseBean<PagedHistoryStates> qryTaskHistoryStates(@Valid @RequestBody QueryTaskHistoryStates queryTaskHistoryStates) {
+		PagedHistoryStates result = webService.qryTaskHistoryStates(queryTaskHistoryStates.getRowid(), queryTaskHistoryStates.getPageNum(), queryTaskHistoryStates.getPageSize());
 		if (result != null) {
 			return ResponseBean.success(result);
 		} else {

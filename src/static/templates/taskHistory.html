@@ -14,6 +14,11 @@
 		
 		const taskRowid = /*[[${rowid}]]*/ "";
 		
+		var pageNum = 0;
+		var pageSize = 10;
+		var totalPages = 0;
+		var totalSize = 0;
+		
 		DocumentUtils.ready(() => {
 			doQuery();
 		});
@@ -21,9 +26,17 @@
 		function doQuery(){
 			HttpUtils.doPost({
 				url: "qryTaskHistoryStates",
-				data: {rowid: taskRowid},
+				data: {
+					rowid: taskRowid,
+					pageNum: pageNum,
+					pageSize: pageSize
+					
+				},
 				success: (response) => {
-					renderTable(response.data);
+					totalPages = response.data.totalPages;
+					totalSize = response.data.totalSize;
+					renderTable(response.data.list);
+					renderPager();
 				}
 			});
 		}
@@ -76,6 +89,21 @@
 			});
 		}
 		
+		function renderPager(){
+			ElementUtils.renderPager({
+				div: document.getElementById("pager"),
+				pageNum: pageNum,
+				pageSize: pageSize,
+				totalPages: totalPages,
+				totalSize: totalSize,
+				onEvent: (_pageNum, _pageSize) => {
+					pageNum = _pageNum,
+					pageSize = _pageSize;
+					doQuery();
+				}				
+			});
+		}
+		
 		function openTaskHistoryParameter(rowid){
 			DialogUtils.window({
 				title: "執行參數",
@@ -99,6 +127,7 @@
 
 	<div class="container-fluid p-3">
 		<table id="table" class="table table-striped table-bordered table-hover align-middle"></table>
+		<div id="pager" style='display: flex; justify-content: space-between;'></div>
 	</div>
 
 </body>

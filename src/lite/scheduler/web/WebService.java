@@ -4,6 +4,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +22,7 @@ import lite.scheduler.dto.request.UpdateParameter;
 import lite.scheduler.dto.request.UpdateTask;
 import lite.scheduler.dto.response.HistoryParameter;
 import lite.scheduler.dto.response.HistoryState;
+import lite.scheduler.dto.response.PagedHistoryStates;
 import lite.scheduler.dto.response.Parameter;
 import lite.scheduler.dto.response.TaskDetail;
 import lite.scheduler.dto.response.TaskState;
@@ -331,13 +335,23 @@ public class WebService {
 	}
 
 	@Transactional(transactionManager = "coreTransactionManager")
-	public List<HistoryState> qryTaskHistoryStates(Integer rowid) {
+	public PagedHistoryStates qryTaskHistoryStates(Integer rowid, Integer pageNum, Integer pageSize) {
+
 		Task task = taskRepo.findById(rowid).orElse(null);
 		if (task == null) {
 			return null;
 		}
 
-		return task.getHistories().stream().map(h -> {
+		Pageable pageable = PageRequest.of(pageNum, pageSize);
+
+		Page<TaskHistory> pagedHistory = taskHistoryRepo.queryPageByTask(task, pageable);
+
+		PagedHistoryStates pagedHistoryStates = new PagedHistoryStates();
+
+		pagedHistoryStates.setTotalPages(pagedHistory.getTotalPages());
+		pagedHistoryStates.setTotalSize(pagedHistory.getTotalElements());
+		
+		pagedHistoryStates.setList(pagedHistory.toList().stream().map(h -> {
 			HistoryState historyState = new HistoryState();
 			historyState.setRowid(h.getRowid());
 			historyState.setTaskId(task.getId());
@@ -346,7 +360,9 @@ public class WebService {
 			historyState.setEdate(h.getEdate());
 			historyState.setResult(h.getResult());
 			return historyState;
-		}).collect(Collectors.toList());
+		}).collect(Collectors.toList()));
+
+		return pagedHistoryStates;
 	}
 
 	@Transactional(transactionManager = "coreTransactionManager")
@@ -366,7 +382,7 @@ public class WebService {
 		}
 
 		String taskHistoryParameter = taskHistory.getParameter();
-		
+
 		ExecuteParamenter executeParamenter = mapper.readValue(taskHistoryParameter, ExecuteParamenter.class);
 
 		HistoryParameter historyParameter = new HistoryParameter();
