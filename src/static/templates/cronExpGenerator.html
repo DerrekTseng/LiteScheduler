@@ -20,6 +20,7 @@
 
 		const options1to60 = createNumberArray(1, 60, false);
 		const options00to59 = createNumberArray(0, 59, true);
+		const options1to24 = createNumberArray(1, 24, false);
 		const options00to23 = createNumberArray(0, 23, true);
 		const options1to7 = createNumberArray(1, 7, false);
 		const options1to31 = createNumberArray(1, 31, false);
@@ -490,8 +491,8 @@
 			ElementUtils.selectOptions(document.getElementById('cronMinuteRangeEnd'), options00to59, 0);
 
 			// Hour
-			ElementUtils.selectOptions(document.getElementById('cronHourIncrementIncrement'), options1to60, 1);
-			ElementUtils.selectOptions(document.getElementById('cronHourIncrementStart'), options00to59, 0);
+			ElementUtils.selectOptions(document.getElementById('cronHourIncrementIncrement'), options1to24, 1);
+			ElementUtils.selectOptions(document.getElementById('cronHourIncrementStart'), options00to23, 0);
 			checkBoxTable(document.getElementById('cronHourSpecificTable'), "cronHourSpecific", "cronHour", 10, options00to23);
 			ElementUtils.selectOptions(document.getElementById('cronHourRangeStart'), options00to23, 0);
 			ElementUtils.selectOptions(document.getElementById('cronHourRangeEnd'), options00to23, 0);
