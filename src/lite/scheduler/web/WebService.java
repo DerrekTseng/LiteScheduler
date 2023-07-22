@@ -394,7 +394,7 @@ public class WebService {
 			return parameter;
 		}).collect(Collectors.toList()));
 
-		historyParameter.setTaskParameter(executeParamenter.getGlobleParameterMap().entrySet().stream().map(entry -> {
+		historyParameter.setTaskParameter(executeParamenter.getTaskParameterMap().entrySet().stream().map(entry -> {
 			Parameter parameter = new Parameter();
 			parameter.setName(entry.getKey());
 			parameter.setData(entry.getValue());
