@@ -90,6 +90,7 @@
 					{html: "歷程", clazz: "text-center", style: "width:60px"},
 					{html: "執行", clazz: "text-center", style: "width:60px"},
 					{html: "刪除", clazz: "text-center", style: "width:60px"},
+					{html: "終止", clazz: "text-center", style: "width:60px"},
 					{html: "明細", clazz: "text-center", style: "width:60px"}
 				],
 				tbody: [
@@ -104,21 +105,34 @@
 						icon: "book",
 						click: "openTaskHistory('@{rowid}')"
 					})},
-					{html: ElementUtils.iconButtonHtml({
-						color: "success",
-						icon: "play-fill",
-						click: "runTask('@{rowid}', '@{id}', '@{name}')"
-					})},
-					{html: ElementUtils.iconButtonHtml({
-						color: "danger",
-						icon: "trash",
-						click: "deleteTask('@{rowid}', '@{id}', '@{name}')"
-					})},
-					{html: ElementUtils.iconButtonHtml({
-						color: "primary",
-						icon: "search",
-						click: "openTaskDetail('@{rowid}')"
-					})}
+					{
+						html: ElementUtils.iconButtonHtml({
+							color: "success",
+							icon: "play-fill",
+							click: "runTask('@{rowid}', '@{id}', '@{name}')"
+						})
+					},
+					{
+						html: ElementUtils.iconButtonHtml({
+							color: "danger",
+							icon: "trash",
+							click: "deleteTask('@{rowid}', '@{id}', '@{name}')"
+						})
+					},
+					{
+						html: ElementUtils.iconButtonHtml({
+							color: "danger",
+							icon: "stop",
+							click: "interruptTask('@{rowid}', '@{id}', '@{name}')"
+						})
+					},
+					{
+						html: ElementUtils.iconButtonHtml({
+							color: "primary",
+							icon: "search",
+							click: "openTaskDetail('@{rowid}')"
+						})
+					}
 				],
 				treach: (item, $tr) => {
 
@@ -199,6 +213,26 @@
 				onConfirm: () => {
 					HttpUtils.doPost({
 						url: "deleteTask",
+						data: {rowid},
+						success: (response) => {
+							PromptUtils.success(response.data);
+							doQuery();
+						},
+						error: (response) => {
+							PromptUtils.error(response.data);
+						}
+					});
+				}
+			});
+		}
+		
+		function interruptTask(rowid, id, name){
+			DialogUtils.confirm({
+				title: "終止任務提醒",
+				text: `你確定要終止「<font style="color:red">${id} - ${name}</font>」任務？`,
+				onConfirm: () => {
+					HttpUtils.doPost({
+						url: "interruptTask",
 						data: {rowid},
 						success: (response) => {
 							PromptUtils.success(response.data);

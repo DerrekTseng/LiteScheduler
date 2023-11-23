@@ -4,10 +4,11 @@ import java.util.Date;
 import java.util.List;
 
 import org.apache.logging.log4j.ThreadContext;
-import org.quartz.Job;
+import org.quartz.InterruptableJob;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
+import org.quartz.UnableToInterruptJobException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
@@ -25,12 +26,21 @@ import lite.scheduler.repo.TaskRepo;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-final public class InternalScheduleTask implements Job {
+final public class InternalScheduleTask implements InterruptableJob {
 
-	private static final ObjectMapper mapper = new ObjectMapper();
+	private final ObjectMapper mapper = new ObjectMapper();
+
+	private Thread currentThread;
+
+	@Override
+	public void interrupt() throws UnableToInterruptJobException {
+		currentThread.interrupt();
+	}
 
 	@Override
 	public void execute(JobExecutionContext context) throws JobExecutionException {
+
+		this.currentThread = Thread.currentThread();
 
 		ApplicationContext applicationContext = LiteSchedulerApplication.getApplicationContext();
 		JpaTransactionManager transactionManager = applicationContext.getBean("coreTransactionManager", JpaTransactionManager.class);

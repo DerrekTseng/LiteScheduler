@@ -101,6 +101,16 @@ public class WebService {
 		taskRepo.delete(task);
 		return null;
 	}
+	
+	@Transactional(transactionManager = "coreTransactionManager")
+	public String interruptTask(Integer rowid) {
+		Task task = taskRepo.findById(rowid).orElse(null);
+		if (task == null) {
+			return "「任務排程」不存在";
+		}
+		schedulerManipulator.interruptTask(task);
+		return null;
+	}
 
 	public String runTask(Integer rowid) {
 		Task task = taskRepo.findById(rowid).orElse(null);
@@ -403,5 +413,7 @@ public class WebService {
 
 		return historyParameter;
 	}
+
+	
 
 }

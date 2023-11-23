@@ -107,6 +107,16 @@ public class WebActionController {
 			return ResponseBean.error(result);
 		}
 	}
+	
+	@PostMapping("interruptTask")
+	public ResponseBean<String> interruptTask(@Valid @RequestBody RequestRowid requestRowid) {
+		String result = webService.interruptTask(requestRowid.getRowid());
+		if (StringUtils.isEmpty(result)) {
+			return ResponseBean.success("請求終止成功");
+		} else {
+			return ResponseBean.error(result);
+		}
+	}
 
 	@PostMapping("runTask")
 	public ResponseBean<String> runTask(@Valid @RequestBody RequestRowid requestRowid) {

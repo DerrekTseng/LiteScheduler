@@ -114,6 +114,18 @@ public class SchedulerManipulator {
 		}
 	}
 
+	public void interruptTask(Task task) {
+		try {
+			log.info("Interrupt task [{}][{}]", task.getId(), task.getName());
+			Integer rowid = task.getRowid();
+			JobKey jobKey = new JobKey(rowid.toString());
+			scheduler.interrupt(jobKey);
+		} catch (SchedulerException e) {
+			throw new RuntimeException(e);
+		}
+
+	}
+
 	void setManualExecute(Task task, Boolean b) {
 		try {
 			Integer rowid = task.getRowid();
@@ -126,4 +138,5 @@ public class SchedulerManipulator {
 			throw new RuntimeException(e);
 		}
 	}
+
 }
