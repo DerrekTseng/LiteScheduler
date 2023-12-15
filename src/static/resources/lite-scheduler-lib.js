@@ -438,10 +438,14 @@ var ElementUtils = top.ElementUtils || {
 					`);
 				}
 				$th.addEventListener("click", () => {
-					if(sortDir === "desc"){
-						onEvent("", "");
-					}else if(sortDir === "asc"){
-						onEvent(_sortKey, "desc");
+					if(_sortKey === sortKey){
+						if(sortDir === "desc"){
+							onEvent("", "");
+						}else if(sortDir === "asc"){
+							onEvent(_sortKey, "desc");
+						}else{
+							onEvent(_sortKey, "asc");
+						}
 					}else{
 						onEvent(_sortKey, "asc");
 					}
