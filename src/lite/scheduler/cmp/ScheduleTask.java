@@ -16,10 +16,6 @@ public interface ScheduleTask {
 	default void interrupt() throws UnableToInterruptJobException {
 
 	}
-
-	default void finalized() {
-
-	}
 	
 	default void internalExecute(ExecuteParamenter parameter, MessageWriter messageWriter) throws Exception {
 

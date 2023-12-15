@@ -363,6 +363,27 @@ var ElementUtils = top.ElementUtils || {
 			`
 		);
 
+		let $pageSizer = ElementUtils.createElement(
+			`
+				<span>
+					每頁
+					<input type="number" min="1" max="1000" style="height: 38px; width: 82px; text-align: center;" value="${pageSize}"/>
+					筆
+				</span>
+			`
+		);
+		
+		$pageSizer.getElementsByTagName("input")[0].addEventListener("change", (e) => {
+			let val = e.target.value;
+			if(val < 1 || val > 1000){
+				e.target.value = pageSize;
+				val = pageSize;
+			}else{
+				onEvent(pageNum, val)
+			}
+		})
+
+		$div.appendChild($pageSizer);
 		$div.appendChild($info);
 		$div.appendChild($pagination);
 
