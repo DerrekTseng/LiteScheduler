@@ -42,8 +42,6 @@ final public class InternalScheduleTask implements InterruptableJob {
 	@Override
 	public void execute(JobExecutionContext context) throws JobExecutionException {
 
-		this.currentThread = Thread.currentThread();
-
 		ApplicationContext applicationContext = LiteSchedulerApplication.getApplicationContext();
 		JpaTransactionManager transactionManager = applicationContext.getBean("coreTransactionManager", JpaTransactionManager.class);
 		GlobleParameterRepo globleParameterRepo = applicationContext.getBean(GlobleParameterRepo.class);
@@ -111,6 +109,9 @@ final public class InternalScheduleTask implements InterruptableJob {
 
 				Class<?> taskClass = Class.forName(task.getTaskClass());
 				ScheduleTask scheduleTask = (ScheduleTask) applicationContext.getBean(taskClass);
+				
+				this.currentThread = Thread.currentThread();
+				this.currentScheduleTask = scheduleTask;
 				scheduleTask.internalExecute(executeParamenter, messageWriter);
 				taskHistory.setResult(ExecutionResult.Succeeded);
 			} catch (Exception e) {
