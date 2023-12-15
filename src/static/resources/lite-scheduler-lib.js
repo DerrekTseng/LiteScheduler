@@ -53,8 +53,8 @@ var DialogUtils = top.DialogUtils || {
 	confirm: (options = {}) => {
 		let title = options.title || "";
 		let text = options.text || "";
-		let cancelText = options.okText || "Cancel";
-		let confirmText = options.okText || "Confirm";
+		let cancelText = options.cancelText || "Cancel";
+		let confirmText = options.confirmText || "Confirm";
 		let onCancel = options.onCancel || (() => { });
 		let onConfirm = options.onConfirm || (() => { });
 
@@ -220,28 +220,37 @@ var ElementUtils = top.ElementUtils || {
 		$table.insertAdjacentHTML('beforeend', theadBuffer.join(""));
 
 		let $tbody = ElementUtils.createElement("<tbody></tbody>");
-		data.forEach(item => {
-			let $tr = ElementUtils.createElement("<tr></tr>");
-			tbody.forEach((_item) => {
-				let _clazz = _item.clazz ? `class="${_item.clazz}"` : "";
-				let _style = _item.style ? `style="${_item.style}"` : "";
-				let _attrs = _item.attrs ? _item.attrs : "";
-				let $td = ElementUtils.createElement(TextUtils.tranPattern(`<td ${_attrs} ${_clazz} ${_style}></td>`, item));
-				if (_item.html) {
-					$td.innerHTML = TextUtils.tranPattern(_item.html, item);
-				} else if (DocumentUtils.isFunction(_item.parse)) {
-					let parsed = _item.parse(item);
-					if (DocumentUtils.isElement(parsed) || DocumentUtils.isNode(parsed)) {
-						$td.appendChild(parsed);
-					} else {
-						$td.innerHTML = parsed;
-					}
-				}
-				$tr.appendChild($td);
-			});
-			treach(item, $tr);
+		if(!data || data.length === 0){
+			let $tr = ElementUtils.createElement(`
+				<tr>
+					<td colspan="${tbody.length}">No Data</td>
+				</tr>
+			`);
 			$tbody.appendChild($tr);
-		});
+		}else{
+			data.forEach(item => {
+				let $tr = ElementUtils.createElement("<tr></tr>");
+				tbody.forEach((_item) => {
+					let _clazz = _item.clazz ? `class="${_item.clazz}"` : "";
+					let _style = _item.style ? `style="${_item.style}"` : "";
+					let _attrs = _item.attrs ? _item.attrs : "";
+					let $td = ElementUtils.createElement(TextUtils.tranPattern(`<td ${_attrs} ${_clazz} ${_style}></td>`, item));
+					if (_item.html) {
+						$td.innerHTML = TextUtils.tranPattern(_item.html, item);
+					} else if (DocumentUtils.isFunction(_item.parse)) {
+						let parsed = _item.parse(item);
+						if (DocumentUtils.isElement(parsed) || DocumentUtils.isNode(parsed)) {
+							$td.appendChild(parsed);
+						} else {
+							$td.innerHTML = parsed;
+						}
+					}
+					$tr.appendChild($td);
+				});
+				treach(item, $tr);
+				$tbody.appendChild($tr);
+			});
+		}
 		$table.appendChild($tbody);
 	},
 	renderPager: (options = {}) => {
@@ -347,7 +356,6 @@ var ElementUtils = top.ElementUtils || {
 		$pagination.appendChild($previousBtn);
 		$pageBtns.forEach($pageBtn => {
 			$pagination.appendChild($pageBtn);
-
 		});
 		$pagination.appendChild($nextBtn);
 		$pagination.appendChild($lastBtn);
@@ -362,7 +370,7 @@ var ElementUtils = top.ElementUtils || {
 			<span>
 			`
 		);
-
+    
 		let $pageSizer = ElementUtils.createElement(
 			`
 				<span>
@@ -379,7 +387,7 @@ var ElementUtils = top.ElementUtils || {
 				e.target.value = pageSize;
 				val = pageSize;
 			}else{
-				onEvent(pageNum, val)
+				onEvent(0, val)
 			}
 		})
 
@@ -428,7 +436,7 @@ var ElementUtils = top.ElementUtils || {
 		$button.addEventListener("click", () => {
 			DialogUtils.window({
 				title: "Cron expression generator",
-				url: "cronExpGenerator",
+				url: "scheduler/cronExpGenerator",
 				data: { cronExp: $input.value },
 				callback: (retVal) => {
 					if (retVal?.cronExp) {
