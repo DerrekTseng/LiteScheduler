@@ -341,7 +341,7 @@ var ElementUtils = top.ElementUtils || {
 			let $pageBtn = ElementUtils.createElement(
 				`
 				<li class="page-item ${num === pageNum + 1 ? 'disabled' : ''}">
-			      <a class="page-link none-select">
+			      <a class="page-link none-select ${num === pageNum + 1 ? 'actived' : ''}">
 			        <span aria-hidden="true">${num}</span>
 			      </a>
 			    </li>

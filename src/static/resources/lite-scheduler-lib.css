@@ -5,6 +5,11 @@
 	left: 25vw;
 }
 
+.page-link.actived{
+	background: #7a7aff !important;
+	color: white !important;
+}
+
 .modal-footer-between {
     justify-content: space-between;
 }
