@@ -39,3 +39,7 @@
   -ms-user-select: none;
   user-select: none;
 }
+
+.clickable:hover {
+  cursor: pointer;
+}

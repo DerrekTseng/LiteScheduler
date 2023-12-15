@@ -205,20 +205,23 @@ var ElementUtils = top.ElementUtils || {
 			captionsBuffer.push(`<caption style="caption-side: ${item.side}">${item.text}</caption>`);
 		});
 		$table.innerHTML = captionsBuffer.join("");
-
-		let theadBuffer = [];
-		theadBuffer.push("<thead>");
-		theadBuffer.push("<tr>");
-		thead.forEach(item => {
-			let _clazz = item.clazz ? `class="${item.clazz}"` : "";
-			let _style = item.style ? `style="${item.style}"` : "";
-			let _attrs = item.attrs ? item.attrs : "";
-			theadBuffer.push(`<th ${_attrs} ${_clazz} ${_style}>${item.html}</th>`);
-		});
-		theadBuffer.push("</tr>");
-		theadBuffer.push("</thead>");
-		$table.insertAdjacentHTML('beforeend', theadBuffer.join(""));
-
+		if(thead.isSorter){
+			$table.appendChild(thead.element);
+		}else{
+			let theadBuffer = [];
+			theadBuffer.push("<thead>");
+			theadBuffer.push("<tr>");
+			thead.forEach(item => {
+				let _clazz = item.clazz ? `class="${item.clazz}"` : "";
+				let _style = item.style ? `style="${item.style}"` : "";
+				let _attrs = item.attrs ? item.attrs : "";
+				theadBuffer.push(`<th ${_attrs} ${_clazz} ${_style}>${item.html}</th>`);
+			});
+			theadBuffer.push("</tr>");
+			theadBuffer.push("</thead>");
+			$table.insertAdjacentHTML('beforeend', theadBuffer.join(""));
+		}
+		
 		let $tbody = ElementUtils.createElement("<tbody></tbody>");
 		if(!data || data.length === 0){
 			let $tr = ElementUtils.createElement(`
@@ -395,6 +398,69 @@ var ElementUtils = top.ElementUtils || {
 		$div.appendChild($info);
 		$div.appendChild($pagination);
 
+	},
+	createSortableTableHeader: (options = {}) => {
+		let thead = options.thead ? options.thead : [];
+		let onEvent = options.onEvent ? options.onEvent : (() => { });
+		let sortKey = options.sortKey ? options.sortKey : null;
+		let sortDir = options.sortDir ? options.sortDir : null;
+		
+		let $thead = ElementUtils.createElement(`
+			<thead>
+				<tr></tr>			
+			</thead>
+		`);
+		
+		let $tr = $thead.getElementsByTagName("tr")[0];
+		
+		thead.forEach(item => {
+			let _clazz = item.clazz ? `class="${item.clazz}"` : "";
+			let _style = item.style ? `style="${item.style}"` : "";
+			let _attrs = item.attrs ? item.attrs : "";
+			let _sortKey = item.sortKey ? item.sortKey : null;
+			
+			let $th;
+			
+			if(_sortKey){
+				_clazz = item.clazz ? `class="${item.clazz} none-select clickable"` : "none-select clickable";
+				if(_sortKey === sortKey && sortDir){
+					$th = ElementUtils.createElement(`
+						<th ${_attrs} ${_clazz} ${_style}>
+							${item.html}
+							${sortDir === "desc" ? '<i class="bi bi-arrow-down-short"></i>' : '<i class="bi bi-arrow-up-short"></i>'}
+						</th>
+					`);
+				}else{
+					$th = ElementUtils.createElement(`
+						<th ${_attrs} ${_clazz} ${_style}>
+							${item.html}
+						</th>
+					`);
+				}
+				$th.addEventListener("click", () => {
+					if(sortDir === "desc"){
+						onEvent("", "");
+					}else if(sortDir === "asc"){
+						onEvent(_sortKey, "desc");
+					}else{
+						onEvent(_sortKey, "asc");
+					}
+				})
+			}else{
+				$th = ElementUtils.createElement(`
+					<th ${_attrs} ${_clazz} ${_style}>
+						${item.html}
+					</th>
+				`);
+			}
+			$tr.appendChild($th);
+		});
+		
+		
+		return {
+			isSorter: true,
+			element: $thead
+		}
 	},
 	iconButtonHtml: (options = {}) => {
 		let attrs = options.attrs ? options.attrs : "";
