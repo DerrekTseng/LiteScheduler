@@ -31,9 +31,11 @@ final public class InternalScheduleTask implements InterruptableJob {
 	private final ObjectMapper mapper = new ObjectMapper();
 
 	private Thread currentThread;
+	private ScheduleTask currentScheduleTask;
 
 	@Override
 	public void interrupt() throws UnableToInterruptJobException {
+		currentScheduleTask.interrupt();
 		currentThread.interrupt();
 	}
 

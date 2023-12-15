@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.quartz.UnableToInterruptJobException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.transaction.PlatformTransactionManager;
 
@@ -12,6 +13,14 @@ import lite.scheduler.LiteSchedulerApplication;
 
 public interface ScheduleTask {
 
+	default void interrupt() throws UnableToInterruptJobException {
+
+	}
+
+	default void finalized() {
+
+	}
+	
 	default void internalExecute(ExecuteParamenter parameter, MessageWriter messageWriter) throws Exception {
 
 		ApplicationContext applicationContext = LiteSchedulerApplication.getApplicationContext();
