@@ -369,7 +369,7 @@
 				document.querySelector('#cronMonthIncrement').checked = true;
 				document.querySelector("#cronMonthIncrementStart").value = month.split("/")[0];
 				document.querySelector('#cronMonthIncrementIncrement').value = month.split("/")[1];
-			} else if (hours.includes("-")) {
+			} else if (month.includes("-")) {
 				document.querySelector('#cronMonthRange').checked = true;
 				document.querySelector("#cronMonthRangeStart").value = month.split("-")[0];
 				document.querySelector('#cronMonthRangeEnd').value = month.split("-")[1];
